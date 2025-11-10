@@ -6,6 +6,8 @@ from app.routers import suppliers as suppliers_router
 from app.routers import links  as links_router
 from app.routers import products as products_router
 from app.routers import chat as chat_router
+from app.routers import complaints as complaints_router
+
 
 
 
@@ -31,3 +33,6 @@ app.include_router(suppliers_router.router)
 app.include_router(links_router.router)
 app.include_router(products_router.router)
 app.include_router(chat_router.router)
+app.include_router(complaints_router.router)
+
+
