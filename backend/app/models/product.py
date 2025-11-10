@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, ForeignKey, String, Numeric
+from sqlalchemy import Integer, ForeignKey, String, Numeric,Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.session import Base
 
@@ -12,3 +12,4 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Numeric(12, 2))
     stock: Mapped[int] = mapped_column(Integer, default=0)
     moq: Mapped[int] = mapped_column(Integer, default=1)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")

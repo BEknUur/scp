@@ -4,8 +4,7 @@ from app.db import base
 from app.routers import auth as auth_router
 from app.routers import suppliers as suppliers_router
 from app.routers import links  as links_router
-
-
+from app.routers import products as products_router
 
 
 
@@ -29,3 +28,5 @@ def health():
 app.include_router(auth_router.router)
 app.include_router(suppliers_router.router)
 app.include_router(links_router.router)
+app.include_router(products_router.router)
+

@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.enums.role import Role
 from app.enums.link_status import LinkStatus
 from app.models.product import Product
-from app.models.link import Link
 from app.models.supplier import Supplier
+from app.repositories.link_repo import LinkRepo
 from app.repositories.product_repo import ProductRepo
 from app.repositories.supplier_repo import SupplierRepo
 from app.schemas.product import ProductCreate, ProductUpdate
@@ -30,18 +30,15 @@ class ProductService:
         return supplier
 
     @staticmethod
-    def _ensure_consumer_link_accepted(db: Session, *, supplier_id: int, consumer_id: int) -> None:
-        link = (
-            db.query(Link)
-              .filter(
-                  Link.supplier_id == supplier_id,
-                  Link.consumer_id == consumer_id,  
-                  Link.status == LinkStatus.ACCEPTED,
-              )
-              .first()
+    def _ensure_consumer_link_accepted(db: Session, *, consumer_id: int, supplier_id: int) -> None:
+        link = LinkRepo.get_between_consumer_and_supplier(
+            db, consumer_id=consumer_id, supplier_id=supplier_id
         )
-        if not link:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No accepted link with this supplier")
+        if not link or link.status != LinkStatus.ACCEPTED:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No ACCEPTED link between this consumer and supplier",
+            )
 
     # --- commands/queries ---
 
@@ -90,6 +87,6 @@ class ProductService:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only consumers can view this")
 
         ProductService._ensure_consumer_link_accepted(
-            db, supplier_id=supplier_id, consumer_user_id=current_user.id
+            db, consumer_id=current_user.id, supplier_id=supplier_id
         )
-        return ProductRepo.list_by_supplier(db, supplier_id)
+        return ProductRepo.list_by_supplier(db, supplier_id, only_active=True)
