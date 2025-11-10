@@ -33,7 +33,7 @@ class SupplierService:
     @staticmethod
     def get_my_supplier(db: Session, user: User):
         SupplierService.ensure_owner(user)
-        supplier = SupplierRepo.get_by_owner(db, owner_id=user.id)
+        supplier = SupplierRepo.get_by_owner_id(db, owner_id=user.id)
         if not supplier:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Supplier not found")
         return supplier
