@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.models.link import Link
 from app.enums import LinkStatus
+from typing import Optional
+from sqlalchemy import select
 
 class LinkRepo:
     @staticmethod
@@ -37,3 +39,16 @@ class LinkRepo:
     @staticmethod
     def list_for_supplier(db: Session, supplier_id: int) -> list[Link]:
         return db.query(Link).filter(Link.supplier_id == supplier_id).all()
+    
+
+    @staticmethod
+    def get_between_consumer_and_supplier(
+        db: Session, *, consumer_id: int, supplier_id: int
+        ) -> Optional[Link]:
+        stmt = select(Link).where(
+            and_(
+                Link.consumer_id == consumer_id,
+                Link.supplier_id == supplier_id,
+            )
+        )
+        return db.execute(stmt).scalars().first()
