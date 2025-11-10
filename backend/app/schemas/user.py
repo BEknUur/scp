@@ -1,6 +1,8 @@
 from pydantic import BaseModel, EmailStr
 from app.enums import Role
 
+
+
 class UserBase(BaseModel):
     email: EmailStr
     role: Role
@@ -8,7 +10,7 @@ class UserBase(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    role: Role = Role.CONSUMER
+    role: Role | None=Role.CONSUMER
 
 class UserOut(UserBase):
     id: int

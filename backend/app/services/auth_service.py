@@ -4,9 +4,11 @@ from app.repositories.user_repo import UserRepo
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.enums import Role
 
+
 class AuthService:
     @staticmethod
-    def register(db: Session, email: str, password: str, role: Role):
+    def register(db: Session, email: str, password: str, role: Role|None = None):
+        role=role or Role.CONSUMER
         existing = UserRepo.get_by_email(db, email)
         if existing:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
