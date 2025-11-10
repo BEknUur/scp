@@ -22,7 +22,7 @@ class LinkService:
 
     @staticmethod
     def _get_owned_supplier_id_or_404(db: Session, owner_id: int) -> int:
-        sup = SupplierRepo.get_by_owner(db, owner_id=owner_id)
+        sup = SupplierRepo.get_by_owner_id(db, owner_id=owner_id)
         if not sup:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Supplier not found for owner")
         return sup.id

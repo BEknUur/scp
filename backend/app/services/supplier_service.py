@@ -17,7 +17,7 @@ class SupplierService:
         SupplierService.ensure_owner(user)
 
         # 1 владелец → 1 компания
-        if SupplierRepo.get_by_owner(db, owner_id=user.id):
+        if SupplierRepo.get_by_owner_id(db, owner_id=user.id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Owner already has a supplier")
 
         # уникальность имени (быстрее проверить вручную, чем ловить IntegrityError)

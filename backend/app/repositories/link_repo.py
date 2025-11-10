@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.models.link import Link
-from app.enums import LinkStatus
+from app.enums import LinkStatus, Role
 from typing import Optional
 from sqlalchemy import select
+from app.models.user import User
+from app.repositories.supplier_repo import SupplierRepo
 
 class LinkRepo:
     @staticmethod
@@ -52,3 +54,25 @@ class LinkRepo:
             )
         )
         return db.execute(stmt).scalars().first()
+    
+
+    @staticmethod
+    def get(db: Session, link_id: int) -> Link | None:
+        stmt = select(Link).where(Link.id == link_id)
+        return db.execute(stmt).scalar_one_or_none()
+
+    @staticmethod
+    def ensure_participant(db: Session, *, link: Link, user: User) -> None:
+        if user.role == Role.CONSUMER:
+            if link.consumer_id != user.id:
+                raise PermissionError("Not a participant of this link")
+            return
+
+        supplier = SupplierRepo.get_by_owner_id(db, user.id)
+        if not supplier or supplier.id != link.supplier_id:
+            raise PermissionError("Not a participant of this link")
+
+    @staticmethod
+    def ensure_accepted(link: Link) -> None:
+        if link.status != LinkStatus.ACCEPTED:
+            raise PermissionError("Link is not ACCEPTED")
