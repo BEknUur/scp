@@ -1,13 +1,7 @@
 from sqlalchemy import Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-from enum import Enum as PyEnum
 from app.db.session import Base
-
-class LinkStatus(PyEnum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    BLOCKED = "blocked"
-    REMOVED = "removed"
+from app.enums.link_status import LinkStatus
 
 class Link(Base):
     __tablename__ = "links"

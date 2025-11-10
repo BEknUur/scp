@@ -1,6 +1,6 @@
 from enum import Enum
 
 class MessageKind(Enum):
-    TEXT = "text"
-    FILE = "file"
-    AUDIO = "audio"
+    TEXT = "TEXT"
+    FILE = "FILE"
+    AUDIO = "AUDIO"

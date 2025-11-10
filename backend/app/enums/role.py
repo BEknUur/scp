@@ -1,7 +1,7 @@
 from enum import Enum
 
 class Role(Enum):
-    CONSUMER = "consumer"
-    SUPPLIER_OWNER = "supplier_owner"
-    SUPPLIER_MANAGER = "supplier_manager"
-    SUPPLIER_SALES = "supplier_sales"
+    CONSUMER = "CONSUMER"
+    SUPPLIER_OWNER = "SUPPLIER_OWNER"
+    SUPPLIER_MANAGER = "SUPPLIER_MANAGER"
+    SUPPLIER_SALES = "SUPPLIER_SALES"
