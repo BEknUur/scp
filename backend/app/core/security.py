@@ -1,19 +1,25 @@
-from datetime import datetime,timedelta
-from jose import jwt
 from passlib.context import CryptContext
+from datetime import datetime, timedelta
+import hashlib
+import base64
+from jose import jwt
 from app.core.config import settings
 
-ALGORITHM="HS256"
+ALGORITHM = "HS256"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-pwd_context=CryptContext(schemes=["bcrypt"],deprecated="auto")
+def get_password_hash(password: str) -> str:
+    password_digest = hashlib.sha256(password.encode("utf-8")).digest()
+    password_b64 = base64.b64encode(password_digest).decode("utf-8")
+    return pwd_context.hash(password_b64)
 
-def create_access_token(sub: str, minutes: int | None = None) -> str:
-    exp = datetime.utcnow() + timedelta(minutes=minutes or settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": sub, "exp": exp}
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
 
-def get_password_hash(pw: str) -> str:
-    return pwd_context.hash(pw)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    password_digest = hashlib.sha256(plain_password.encode("utf-8")).digest()
+    password_b64 = base64.b64encode(password_digest).decode("utf-8")
+    return pwd_context.verify(password_b64, hashed_password)
 
-def verify_password(pw: str, hashed: str) -> bool:
-    return pwd_context.verify(pw, hashed)
+def create_access_token(sub: str) -> str:
+    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode = {"sub": sub, "exp": expire}
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
