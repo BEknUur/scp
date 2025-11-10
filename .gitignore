@@ -1,0 +1,50 @@
+__pycache__
+dockerignore
+.env
+...existing code...
+# Python
+*.py[cod]
+*.pyo
+__pycache__/
+*.so
+
+# Virtual envs
+.env*
+.venv/
+venv/
+env/
+
+# Testing / type checking
+.pytest_cache/
+.mypy_cache/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Logs / databases / coverage
+*.log
+logs/
+*.sqlite3
+*.db
+.coverage
+coverage.xml
+htmlcov/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node (if used)
+node_modules/
