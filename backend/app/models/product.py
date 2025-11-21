@@ -1,5 +1,5 @@
-from sqlalchemy import Integer, ForeignKey, String, Numeric,Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Integer, ForeignKey, String, Numeric, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
 
 class Product(Base):
@@ -13,3 +13,6 @@ class Product(Base):
     stock: Mapped[int] = mapped_column(Integer, default=0)
     moq: Mapped[int] = mapped_column(Integer, default=1)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true")
+
+    # Relationship for populated responses (optional, use selectinload when needed)
+    supplier = relationship("Supplier", lazy="select")

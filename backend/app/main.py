@@ -5,8 +5,10 @@ from app.routers import auth as auth_router
 from app.routers import suppliers as suppliers_router
 from app.routers import links  as links_router
 from app.routers import products as products_router
+from app.routers import orders as orders_router
 from app.routers import chat as chat_router
 from app.routers import complaints as complaints_router
+from app.routers import staff as staff_router
 
 
 
@@ -32,7 +34,9 @@ app.include_router(auth_router.router)
 app.include_router(suppliers_router.router)
 app.include_router(links_router.router)
 app.include_router(products_router.router)
+app.include_router(orders_router.router)
 app.include_router(chat_router.router)
 app.include_router(complaints_router.router)
+app.include_router(staff_router.router)
 
 

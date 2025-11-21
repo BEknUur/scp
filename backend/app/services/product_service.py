@@ -30,6 +30,24 @@ class ProductService:
         return supplier
 
     @staticmethod
+    def _get_user_supplier_or_404(db: Session, user: User) -> Supplier:
+        """
+        Возвращает supplier для любой роли поставщика (Owner, Manager, Sales).
+        """
+        if user.role not in (Role.SUPPLIER_OWNER, Role.SUPPLIER_MANAGER, Role.SUPPLIER_SALES):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only supplier staff can access products")
+
+        from app.repositories.staff_repo import StaffRepo
+        supplier_id = StaffRepo.get_supplier_for_user(db, user.id)
+        if not supplier_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Supplier not found for user")
+        
+        supplier = SupplierRepo.get(db, supplier_id)
+        if not supplier:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Supplier not found")
+        return supplier
+
+    @staticmethod
     def _ensure_consumer_link_accepted(db: Session, *, consumer_id: int, supplier_id: int) -> None:
         link = LinkRepo.get_between_consumer_and_supplier(
             db, consumer_id=consumer_id, supplier_id=supplier_id
@@ -75,7 +93,7 @@ class ProductService:
 
     @staticmethod
     def list_for_my_supplier(db: Session, *, current_user: User) -> Iterable[Product]:
-        supplier = ProductService._get_owner_supplier_or_404(db, current_user)
+        supplier = ProductService._get_user_supplier_or_404(db, current_user)
         return ProductRepo.list_by_supplier(db, supplier.id)
 
     @staticmethod

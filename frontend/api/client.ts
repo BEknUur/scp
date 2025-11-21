@@ -3,9 +3,8 @@ import { Platform } from 'react-native';
 
 import { storage } from '@/utils/storage';
 
-const DEFAULT_REMOTE_API_URL = 'https://fb09a140cc81.ngrok-free.app';
+const DEFAULT_REMOTE_API_URL = 'https://1fa4ac8172e6.ngrok-free.app';
 
-// Для Android эмулятора используем 10.0.2.2, для iOS симулятора localhost, для физического устройства - IP компьютера
 const getApiUrl = () => {
   const envApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
   if (envApiUrl) {
@@ -16,11 +15,9 @@ const getApiUrl = () => {
     if (Platform.OS === 'web') {
       return 'http://localhost:8000';
     }
-    // Для мобильных устройств (iOS/Android) используем ngrok
     return DEFAULT_REMOTE_API_URL;
   }
 
-  // Физическое устройство в продакшене - используем заранее настроенный публичный URL (ngrok / домен)
   return DEFAULT_REMOTE_API_URL;
 };
 

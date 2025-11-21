@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.supplier import Supplier
@@ -25,3 +25,16 @@ class SupplierRepo:
     def get_by_name(db: Session, name: str) -> Optional[Supplier]:
         stmt = select(Supplier).where(Supplier.name == name)
         return db.execute(stmt).scalars().first()
+
+    @staticmethod
+    def list_all(db: Session, skip: int = 0, limit: int = 20, search: str | None = None) -> List[Supplier]:
+        """List all suppliers with optional search"""
+        stmt = select(Supplier).offset(skip).limit(limit)
+        if search:
+            stmt = stmt.where(Supplier.name.ilike(f"%{search}%"))
+        return db.execute(stmt).scalars().unique().all()
+
+    @staticmethod
+    def get(db: Session, supplier_id: int) -> Optional[Supplier]:
+        """Get supplier by ID"""
+        return db.get(Supplier, supplier_id)

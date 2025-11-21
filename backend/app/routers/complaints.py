@@ -3,9 +3,10 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.core.deps import get_db, auth_bearer as get_current_user
+from app.core.permissions import require_roles
 from app.models.user import User
 from app.schemas.complaint import ComplaintCreate, ComplaintOut, ComplaintStatusUpdate
-from app.enums import ComplaintStatus
+from app.enums import ComplaintStatus, Role
 from app.services.complaint_service import ComplaintService
 
 router = APIRouter(prefix="/complaints", tags=["complaints"])
@@ -28,6 +29,16 @@ def update_complaint_status(
     current_user: User = Depends(get_current_user),
 ):
     return ComplaintService.update_status(db, current_user=current_user, complaint_id=complaint_id, status_to=payload.status)
+
+@router.post("/{complaint_id}/escalate", response_model=ComplaintOut)
+@require_roles(Role.SUPPLIER_SALES)
+def escalate_complaint(
+    complaint_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Sales escalates complaint to Manager/Owner"""
+    return ComplaintService.escalate(db, complaint_id, current_user)
 
 @router.get("", response_model=list[ComplaintOut])
 def list_complaints(

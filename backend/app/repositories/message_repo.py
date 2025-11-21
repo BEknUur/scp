@@ -28,4 +28,4 @@ class MessageRepo:
             .limit(limit)
             .offset(offset)
         )
-        return list(db.execute(stmt).scalars())
+        return db.execute(stmt).scalars().unique().all()

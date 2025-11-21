@@ -27,10 +27,12 @@ export default function ConsumerHomeScreen() {
 
   const loadData = async () => {
     try {
-      const links = await linksApi.listMyLinks();
+      const [links, allSuppliers] = await Promise.all([
+        linksApi.listMyLinks(),
+        suppliersApi.listAll()
+      ]);
       setMyLinks(links);
-      // TODO: Нужен эндпоинт для получения всех suppliers
-      setSuppliers([]);
+      setSuppliers(allSuppliers);
     } catch (error: any) {
       console.error('Failed to load data:', error);
       Alert.alert('Error', 'Failed to load suppliers');

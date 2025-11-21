@@ -1,5 +1,5 @@
 from sqlalchemy import Integer, ForeignKey, Enum, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.session import Base
 from app.enums.link_status import LinkStatus
 
@@ -13,3 +13,7 @@ class Link(Base):
     consumer_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     supplier_id: Mapped[int] = mapped_column(ForeignKey("suppliers.id"), index=True)
     status: Mapped[LinkStatus] = mapped_column(Enum(LinkStatus), default=LinkStatus.PENDING)
+
+    # Relationships for populated responses
+    consumer = relationship("User", foreign_keys=[consumer_id], lazy="joined")
+    supplier = relationship("Supplier", foreign_keys=[supplier_id], lazy="joined")

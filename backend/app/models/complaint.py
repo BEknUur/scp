@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Integer, ForeignKey, Enum, Text, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.db.session import Base
@@ -20,3 +20,12 @@ class Complaint(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    
+    # Escalation fields
+    assigned_to_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    escalated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # Relationships
+    creator = relationship("User", foreign_keys=[created_by], lazy="joined")
+    assigned_to = relationship("User", foreign_keys=[assigned_to_id], lazy="joined")

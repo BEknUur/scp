@@ -92,8 +92,12 @@ class LinkService:
     def list_my_links(db: Session, current_user: User) -> list[Link]:
         if current_user.role == Role.CONSUMER:
             return LinkRepo.list_for_consumer(db, consumer_id=current_user.id)
-        elif current_user.role == Role.SUPPLIER_OWNER:
-            sup_id = LinkService._get_owned_supplier_id_or_404(db, owner_id=current_user.id)
+        elif current_user.role in [Role.SUPPLIER_OWNER, Role.SUPPLIER_MANAGER, Role.SUPPLIER_SALES]:
+            # Use StaffRepo to get supplier_id for any supplier role
+            from app.repositories.staff_repo import StaffRepo
+            sup_id = StaffRepo.get_supplier_for_user(db, current_user.id)
+            if not sup_id:
+                raise HTTPException(status_code=404, detail="Supplier not found for user")
             return LinkRepo.list_for_supplier(db, supplier_id=sup_id)
         else:
             # для других ролей пока запрещаем

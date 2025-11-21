@@ -36,11 +36,13 @@ class LinkRepo:
 
     @staticmethod
     def list_for_consumer(db: Session, consumer_id: int) -> list[Link]:
-        return db.query(Link).filter(Link.consumer_id == consumer_id).all()
+        stmt = select(Link).where(Link.consumer_id == consumer_id).order_by(Link.id.desc())
+        return db.execute(stmt).scalars().unique().all()
 
     @staticmethod
     def list_for_supplier(db: Session, supplier_id: int) -> list[Link]:
-        return db.query(Link).filter(Link.supplier_id == supplier_id).all()
+        stmt = select(Link).where(Link.supplier_id == supplier_id).order_by(Link.id.desc())
+        return db.execute(stmt).scalars().unique().all()
     
 
     @staticmethod
@@ -68,9 +70,15 @@ class LinkRepo:
                 raise PermissionError("Not a participant of this link")
             return
 
-        supplier = SupplierRepo.get_by_owner_id(db, user.id)
-        if not supplier or supplier.id != link.supplier_id:
-            raise PermissionError("Not a participant of this link")
+        # Check if user is associated with the supplier (Owner, Manager, or Sales)
+        if user.role in [Role.SUPPLIER_OWNER, Role.SUPPLIER_MANAGER, Role.SUPPLIER_SALES]:
+            from app.repositories.staff_repo import StaffRepo
+            supplier_id = StaffRepo.get_supplier_for_user(db, user.id)
+            if not supplier_id or supplier_id != link.supplier_id:
+                raise PermissionError("Not a participant of this link")
+            return
+
+        raise PermissionError("Not a participant of this link")
 
     @staticmethod
     def ensure_accepted(link: Link) -> None:

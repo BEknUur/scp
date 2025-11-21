@@ -16,5 +16,6 @@ class Message(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False, index=True)
 
-    # опциональные связи
+    # Relationships for populated responses
     link = relationship("Link", lazy="joined")
+    sender = relationship("User", foreign_keys=[sender_id], lazy="joined")

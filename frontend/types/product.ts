@@ -1,3 +1,5 @@
+import { Supplier } from './supplier';
+
 export interface Product {
   id: number;
   supplier_id: number;
@@ -7,6 +9,7 @@ export interface Product {
   stock: number;
   moq: number;
   is_active: boolean;
+  supplier?: Supplier;
 }
 
 export interface ProductCreate {
@@ -35,4 +38,5 @@ export interface ProductOut {
   stock: number;
   moq: number;
   is_active: boolean;
+  supplier?: Supplier;
 }

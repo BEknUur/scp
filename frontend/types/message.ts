@@ -1,3 +1,5 @@
+import { User } from './user';
+
 export interface Message {
   id: number;
   link_id: number;
@@ -6,6 +8,7 @@ export interface Message {
   file_url?: string;
   audio_url?: string;
   created_at: string;
+  sender?: User;
 }
 
 export interface MessageCreate {
@@ -22,4 +25,5 @@ export interface MessageOut {
   file_url?: string;
   audio_url?: string;
   created_at: string;
+  sender?: User;
 }

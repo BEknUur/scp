@@ -46,6 +46,14 @@ def list_my_products(
 ):
     return ProductService.list_for_my_supplier(db, current_user=current_user)
 
+@router.get("/me", response_model=List[ProductOut])
+def get_my_products(
+    current_user: User = Depends(auth_bearer),
+    db: Session = Depends(get_db),
+):
+    """Alias for /mine - get products for current supplier"""
+    return ProductService.list_for_my_supplier(db, current_user=current_user)
+
 # --- Consumer route ---
 
 @router.get("", response_model=List[ProductOut])

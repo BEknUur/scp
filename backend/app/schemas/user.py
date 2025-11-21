@@ -2,6 +2,15 @@ from pydantic import BaseModel, EmailStr
 from app.enums import Role
 
 
+class UserBasic(BaseModel):
+    """Lightweight user info for nested responses"""
+    id: int
+    email: str
+    role: Role
+
+    class Config:
+        from_attributes = True
+
 
 class UserBase(BaseModel):
     email: EmailStr

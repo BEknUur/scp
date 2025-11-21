@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -19,6 +20,11 @@ class MessageOut(BaseModel):
     file_url: Optional[str] = None
     audio_url: Optional[str] = None
     created_at: datetime
+    sender: Optional['UserBasic'] = None
 
     class Config:
         from_attributes = True
+
+# Resolve forward references
+from app.schemas.user import UserBasic
+MessageOut.model_rebuild()
