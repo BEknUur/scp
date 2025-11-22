@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import { ordersApi } from '@/api';
 import { Button, Card } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
@@ -20,6 +21,7 @@ export default function CartScreen() {
   const router = useRouter();
   const { items, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
   const { showSuccess, showError } = useToast();
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleUpdateQuantity = (productId: number, value: string) => {
@@ -28,15 +30,15 @@ export default function CartScreen() {
   };
 
   const handleRemoveItem = (productId: number, productName: string) => {
-    Alert.alert('Remove Item', `Remove ${productName} from cart?`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Remove', style: 'destructive', onPress: () => removeItem(productId) },
+    Alert.alert(t('cart.remove'), t('cart.removeConfirm', { name: productName }), [
+      { text: t('app.cancel'), style: 'cancel' },
+      { text: t('cart.remove'), style: 'destructive', onPress: () => removeItem(productId) },
     ]);
   };
 
   const handleCheckout = async () => {
     if (items.length === 0) {
-      Alert.alert('Empty Cart', 'Add items to cart before checking out');
+      Alert.alert(t('cart.empty'), t('cart.emptySubtext'));
       return;
     }
 
@@ -74,7 +76,11 @@ export default function CartScreen() {
 
       // Show success toast
       showSuccess(
-        `🎉 Order Created! ${createdOrders.length} order${createdOrders.length > 1 ? 's' : ''} • ${totalItems} item${totalItems > 1 ? 's' : ''} • $${totalAmount.toFixed(2)}`,
+        t('cart.orderSuccess', {
+          count: createdOrders.length,
+          items: totalItems,
+          total: totalAmount.toFixed(2)
+        }),
         6000
       );
 
@@ -82,15 +88,15 @@ export default function CartScreen() {
       clearCart();
 
       Alert.alert(
-        'What\'s Next?',
+        t('cart.whatsNext'),
         `Your order${createdOrders.length > 1 ? 's have' : ' has'} been sent to the supplier${createdOrders.length > 1 ? 's' : ''} for review.`,
         [
           {
-            text: 'Continue Shopping',
+            text: t('cart.continueShopping'),
             onPress: () => router.push('/(consumer)' as any),
           },
           {
-            text: 'View My Orders',
+            text: t('cart.viewOrders'),
             onPress: () => router.push('/(consumer)/orders' as any),
           },
         ]
@@ -119,7 +125,7 @@ export default function CartScreen() {
 
         <View style={styles.itemDetails}>
           <View style={styles.quantityContainer}>
-            <Text style={styles.quantityLabel}>Quantity:</Text>
+            <Text style={styles.quantityLabel}>{t('cart.quantity')}:</Text>
             <TextInput
               style={styles.quantityInput}
               value={quantity.toString()}
@@ -141,7 +147,7 @@ export default function CartScreen() {
             size="sm"
             onPress={() => handleRemoveItem(product.id, product.name)}
           >
-            Remove
+            {t('cart.remove')}
           </Button>
         </View>
       </Card>
@@ -152,13 +158,13 @@ export default function CartScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>Your cart is empty</Text>
-          <Text style={styles.emptySubtext}>Browse suppliers to add products</Text>
+          <Text style={styles.emptyText}>{t('cart.empty')}</Text>
+          <Text style={styles.emptySubtext}>{t('cart.emptySubtext')}</Text>
           <Button
             onPress={() => router.push('/(consumer)' as any)}
             style={styles.browseButton}
           >
-            Browse Suppliers
+            {t('cart.browseSuppliers')}
           </Button>
         </View>
       </View>
@@ -175,11 +181,11 @@ export default function CartScreen() {
         ListFooterComponent={
           <Card style={styles.summaryCard}>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Items:</Text>
+              <Text style={styles.summaryLabel}>{t('cart.totalItems')}:</Text>
               <Text style={styles.summaryValue}>{items.length}</Text>
             </View>
             <View style={styles.summaryRow}>
-              <Text style={styles.totalLabel}>Total Price:</Text>
+              <Text style={styles.totalLabel}>{t('cart.totalPrice')}:</Text>
               <Text style={styles.totalValue}>${totalPrice.toFixed(2)}</Text>
             </View>
           </Card>
@@ -193,7 +199,7 @@ export default function CartScreen() {
           disabled={isSubmitting}
           fullWidth
         >
-          {isSubmitting ? 'Creating Order...' : 'Place Order'}
+          {isSubmitting ? t('cart.creatingOrder') : t('cart.placeOrder')}
         </Button>
       </View>
     </View>

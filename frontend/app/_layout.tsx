@@ -11,6 +11,9 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import { Role } from '@/enums';
 import { View, ActivityIndicator } from 'react-native';
 
+// Initialize i18n
+import '@/i18n';
+
 function RootLayoutNav() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const segments = useSegments();

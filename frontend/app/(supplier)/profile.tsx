@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
-import { Button, Card, Input } from '@/components/ui';
+import { Button, Card, Input, LanguageSwitcher } from '@/components/ui';
 import { colors, typography, spacing, radius } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -68,33 +70,35 @@ export default function ProfileScreen() {
               {user?.email?.charAt(0).toUpperCase()}
             </Text>
           </View>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <Text style={styles.headerSubtitle}>Manage your account settings</Text>
+          <Text style={styles.headerTitle}>{t('profile.title', { defaultValue: 'Profile' })}</Text>
+          <Text style={styles.headerSubtitle}>{t('profile.subtitle', { defaultValue: 'Manage your account settings' })}</Text>
         </View>
 
         {/* Account Information Card */}
         <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Account Information</Text>
+          <Text style={styles.cardTitle}>{t('profile.accountInfo', { defaultValue: 'Account Information' })}</Text>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t('profile.email', { defaultValue: 'Email' })}</Text>
               <Text style={styles.value} numberOfLines={1} ellipsizeMode="middle">
                 {user?.email}
               </Text>
             </View>
 
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Account Type</Text>
+              <Text style={styles.label}>{t('profile.accountType', { defaultValue: 'Account Type' })}</Text>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>
-                  {user?.role === 'CONSUMER' ? 'Consumer' : 'Supplier'}
+                  {user?.role === 'CONSUMER'
+                    ? t('profile.consumer', { defaultValue: 'Consumer' })
+                    : t('profile.supplier', { defaultValue: 'Supplier' })}
                 </Text>
               </View>
             </View>
 
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label}>{t('profile.password', { defaultValue: 'Password' })}</Text>
               <View style={styles.passwordRow}>
                 <Text style={styles.passwordValue}>
                   {showPassword ? 'mypassword123' : '••••••••'}
@@ -119,17 +123,17 @@ export default function ProfileScreen() {
               onPress={() => setIsEditingPassword(true)}
               style={styles.changePasswordBtn}
             >
-              Change Password
+              {t('profile.changePassword', { defaultValue: 'Change Password' })}
             </Button>
           )}
 
           {isEditingPassword && (
             <View style={styles.passwordForm}>
               <Input
-                label="New Password"
+                label={t('profile.newPassword', { defaultValue: 'New Password' })}
                 value={newPassword}
                 onChangeText={setNewPassword}
-                placeholder="Enter new password"
+                placeholder={t('profile.newPasswordPlaceholder', { defaultValue: 'Enter new password' })}
                 secureTextEntry={!showNewPassword}
                 rightIcon={
                   <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
@@ -143,10 +147,10 @@ export default function ProfileScreen() {
               />
 
               <Input
-                label="Confirm Password"
+                label={t('profile.confirmPassword', { defaultValue: 'Confirm Password' })}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm new password"
+                placeholder={t('profile.confirmPasswordPlaceholder', { defaultValue: 'Confirm new password' })}
                 secureTextEntry={!showConfirmPassword}
                 rightIcon={
                   <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
@@ -169,10 +173,10 @@ export default function ProfileScreen() {
                   }}
                   style={styles.cancelBtn}
                 >
-                  Cancel
+                  {t('common.cancel', { defaultValue: 'Cancel' })}
                 </Button>
                 <Button onPress={handleChangePassword} style={styles.saveBtn}>
-                  Save
+                  {t('common.save', { defaultValue: 'Save' })}
                 </Button>
               </View>
             </View>
@@ -181,22 +185,32 @@ export default function ProfileScreen() {
 
         {/* Account Actions Card */}
         <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Account Actions</Text>
+          <Text style={styles.cardTitle}>{t('profile.settings', { defaultValue: 'Account Actions' })}</Text>
 
           <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
             <View style={styles.actionLeft}>
               <Ionicons name="notifications-outline" size={22} color={colors.foreground.primary} />
-              <Text style={styles.actionText}>Notifications</Text>
+              <Text style={styles.actionText}>{t('profile.notifications', { defaultValue: 'Notifications' })}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.foreground.tertiary} />
           </TouchableOpacity>
 
           <View style={styles.divider} />
 
+          <View style={styles.languageSection}>
+            <View style={styles.actionLeft}>
+              <Ionicons name="language-outline" size={22} color={colors.foreground.primary} />
+              <Text style={styles.actionText}>{t('profile.language', { defaultValue: 'Language' })}</Text>
+            </View>
+            <LanguageSwitcher showLabel={false} compact />
+          </View>
+
+          <View style={styles.divider} />
+
           <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
             <View style={styles.actionLeft}>
               <Ionicons name="help-circle-outline" size={22} color={colors.foreground.primary} />
-              <Text style={styles.actionText}>Help & Support</Text>
+              <Text style={styles.actionText}>{t('profile.helpSupport', { defaultValue: 'Help & Support' })}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.foreground.tertiary} />
           </TouchableOpacity>
@@ -206,7 +220,7 @@ export default function ProfileScreen() {
           <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
             <View style={styles.actionLeft}>
               <Ionicons name="document-text-outline" size={22} color={colors.foreground.primary} />
-              <Text style={styles.actionText}>Terms & Privacy</Text>
+              <Text style={styles.actionText}>{t('profile.termsPrivacy', { defaultValue: 'Terms & Privacy' })}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.foreground.tertiary} />
           </TouchableOpacity>
@@ -219,7 +233,7 @@ export default function ProfileScreen() {
           activeOpacity={0.7}
         >
           <Ionicons name="log-out-outline" size={20} color={colors.semantic.error} />
-          <Text style={styles.logoutText}>Sign Out</Text>
+          <Text style={styles.logoutText}>{t('auth.logout', { defaultValue: 'Sign Out' })}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -348,6 +362,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+  },
+  languageSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

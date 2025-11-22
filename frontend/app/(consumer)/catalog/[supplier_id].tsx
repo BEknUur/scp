@@ -14,6 +14,7 @@ import { ProductOut, SupplierOut, LinkOut } from '@/types';
 import { Button, Card } from '@/components/ui';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useTranslation } from '@/hooks/useTranslation';
 import { colors, typography, spacing } from '@/theme';
 
 export default function CatalogScreen() {
@@ -21,6 +22,7 @@ export default function CatalogScreen() {
   const router = useRouter();
   const { addItem, getItemQuantity } = useCart();
   const { showSuccess, showError, showWarning } = useToast();
+  const { t } = useTranslation();
 
   const [supplier, setSupplier] = useState<SupplierOut | null>(null);
   const [products, setProducts] = useState<ProductOut[]>([]);
@@ -76,17 +78,17 @@ export default function CatalogScreen() {
     const quantity = quantities[product.id] || product.moq;
 
     if (quantity < product.moq) {
-      showWarning(`Minimum order quantity is ${product.moq} ${product.unit}`);
+      showWarning(t('catalog.minQuantityError', { moq: product.moq, unit: product.unit }));
       return;
     }
 
     if (quantity > product.stock) {
-      showWarning(`Only ${product.stock} ${product.unit} available`);
+      showWarning(t('catalog.stockError', { stock: product.stock, unit: product.unit }));
       return;
     }
 
     addItem(product, quantity);
-    showSuccess(`✅ Added ${quantity} ${product.unit} of ${product.name} to cart!`);
+    showSuccess(t('cart.addedToCart', { quantity, unit: product.unit, name: product.name }));
     setQuantities((prev) => ({ ...prev, [product.id]: product.moq }));
   };
 
@@ -101,12 +103,12 @@ export default function CatalogScreen() {
     setIsRequestingLink(true);
     try {
       await linksApi.requestLink(supplier.id);
-      showSuccess(`Link request sent to ${supplier.name}!`);
+      showSuccess(t('catalog.linkRequestSent', { supplier: supplier.name }));
       // Reload data to check new link status
       loadData();
     } catch (error: any) {
       console.error('Failed to request link:', error);
-      showError(error.response?.data?.detail || 'Failed to request link');
+      showError(error.response?.data?.detail || t('catalog.linkRequestError'));
     } finally {
       setIsRequestingLink(false);
     }
@@ -128,13 +130,13 @@ export default function CatalogScreen() {
         </View>
 
         <View style={styles.productMeta}>
-          <Text style={styles.metaText}>Stock: {item.stock} {item.unit}</Text>
-          <Text style={styles.metaText}>MOQ: {item.moq} {item.unit}</Text>
+          <Text style={styles.metaText}>{t('catalog.stock')}: {item.stock} {item.unit}</Text>
+          <Text style={styles.metaText}>{t('catalog.moq')}: {item.moq} {item.unit}</Text>
         </View>
 
         {inCart > 0 && (
           <View style={styles.inCartBadge}>
-            <Text style={styles.inCartText}>{inCart} in cart</Text>
+            <Text style={styles.inCartText}>{t('catalog.inCart', { count: inCart })}</Text>
           </View>
         )}
 
@@ -156,7 +158,7 @@ export default function CatalogScreen() {
             size="sm"
             style={styles.addButton}
           >
-            Add to Cart
+            {t('catalog.addToCart')}
           </Button>
         </View>
       </Card>
@@ -189,9 +191,9 @@ export default function CatalogScreen() {
 
         {!hasAcceptedLink ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>🔗 Link Required</Text>
+            <Text style={styles.emptyText}>{t('catalog.linkRequired')}</Text>
             <Text style={styles.emptySubtext}>
-              You need an accepted link with {supplier?.name} to view their products and prices.
+              {t('catalog.linkRequiredText', { supplier: supplier?.name })}
             </Text>
             <Button
               onPress={handleRequestLink}
@@ -199,13 +201,13 @@ export default function CatalogScreen() {
               disabled={isRequestingLink}
               style={styles.requestButton}
             >
-              {isRequestingLink ? 'Requesting...' : 'Request Link'}
+              {isRequestingLink ? t('catalog.requesting') : t('catalog.requestLink')}
             </Button>
           </View>
         ) : products.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No products available</Text>
-            <Text style={styles.emptySubtext}>This supplier has no active products yet</Text>
+            <Text style={styles.emptyText}>{t('catalog.noProducts')}</Text>
+            <Text style={styles.emptySubtext}>{t('catalog.noProductsSubtext')}</Text>
           </View>
         ) : (
           <FlatList
@@ -218,7 +220,7 @@ export default function CatalogScreen() {
 
         <View style={styles.footer}>
           <Button onPress={() => router.push('/(consumer)/cart')} fullWidth>
-            View Cart
+            {t('catalog.viewCart')}
           </Button>
         </View>
       </View>

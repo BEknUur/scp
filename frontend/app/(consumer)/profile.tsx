@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
-import { Button, Card, Input } from '@/components/ui';
+import { Button, Card, Input, LanguageSwitcher } from '@/components/ui';
 import { colors, typography, spacing, radius } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -181,15 +183,25 @@ export default function ProfileScreen() {
 
         {/* Account Actions Card */}
         <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Account Actions</Text>
+          <Text style={styles.cardTitle}>{t('profile.settings')}</Text>
 
           <TouchableOpacity style={styles.actionItem} activeOpacity={0.7}>
             <View style={styles.actionLeft}>
               <Ionicons name="notifications-outline" size={22} color={colors.foreground.primary} />
-              <Text style={styles.actionText}>Notifications</Text>
+              <Text style={styles.actionText}>{t('profile.notifications')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.foreground.tertiary} />
           </TouchableOpacity>
+
+          <View style={styles.divider} />
+
+          <View style={styles.languageSection}>
+            <View style={styles.actionLeft}>
+              <Ionicons name="language-outline" size={22} color={colors.foreground.primary} />
+              <Text style={styles.actionText}>{t('profile.language')}</Text>
+            </View>
+            <LanguageSwitcher showLabel={false} compact />
+          </View>
 
           <View style={styles.divider} />
 
@@ -219,7 +231,7 @@ export default function ProfileScreen() {
           activeOpacity={0.7}
         >
           <Ionicons name="log-out-outline" size={20} color={colors.semantic.error} />
-          <Text style={styles.logoutText}>Sign Out</Text>
+          <Text style={styles.logoutText}>{t('auth.logout')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -365,6 +377,12 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: colors.border.primary,
+  },
+  languageSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
   },
   logoutBtn: {
     marginTop: spacing.md,

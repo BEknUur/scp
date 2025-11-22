@@ -1,0 +1,138 @@
+{
+  "app": {
+    "name": "SCP - Supply Chain Platform",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "retry": "Retry"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Sign In",
+    "loginError": "Invalid email or password",
+    "loginSuccess": "Welcome back!",
+    "logoutSuccess": "Logged out successfully"
+  },
+  "navigation": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "cart": "Cart",
+    "orders": "Orders",
+    "profile": "Profile",
+    "suppliers": "Suppliers",
+    "products": "Products",
+    "links": "Links",
+    "complaints": "Complaints",
+    "chat": "Chat",
+    "staff": "Staff"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "emptySubtext": "Browse suppliers to add products",
+    "totalItems": "Total Items",
+    "totalPrice": "Total Price",
+    "placeOrder": "Place Order",
+    "creatingOrder": "Creating Order...",
+    "orderSuccess": "🎉 Order Created! {{count}} order • {{items}} items • ${{total}}",
+    "orderError": "Failed to create order",
+    "whatsNext": "What's Next?",
+    "continueShopping": "Continue Shopping",
+    "viewOrders": "View My Orders",
+    "quantity": "Quantity",
+    "remove": "Remove",
+    "removeConfirm": "Remove {{name}} from cart?",
+    "addedToCart": "✅ Added {{quantity}} {{unit}} of {{name}} to cart!",
+    "browseSuppliers": "Browse Suppliers"
+  },
+  "catalog": {
+    "title": "Product Catalog",
+    "noProducts": "No products available",
+    "noProductsSubtext": "This supplier has no active products yet",
+    "linkRequired": "🔗 Link Required",
+    "linkRequiredText": "You need an accepted link with {{supplier}} to view their products and prices.",
+    "requestLink": "Request Link",
+    "requesting": "Requesting...",
+    "linkRequestSent": "Link request sent to {{supplier}}!",
+    "linkRequestError": "Failed to request link",
+    "addToCart": "Add to Cart",
+    "stock": "Stock",
+    "moq": "MOQ",
+    "inCart": "{{count}} in cart",
+    "minQuantityError": "Minimum order quantity is {{moq}} {{unit}}",
+    "stockError": "Only {{stock}} {{unit}} available",
+    "viewCart": "View Cart"
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "discover": "Discover Suppliers",
+    "noSuppliers": "No suppliers found",
+    "requestLink": "Request Link",
+    "viewCatalog": "View Catalog",
+    "linkStatus": {
+      "pending": "Pending",
+      "accepted": "Connected",
+      "blocked": "Blocked",
+      "removed": "Removed"
+    }
+  },
+  "orders": {
+    "title": "My Orders",
+    "noOrders": "No orders found",
+    "orderDetail": "Order Details",
+    "status": {
+      "created": "Created",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "completed": "Completed"
+    },
+    "accept": "Accept Order",
+    "reject": "Reject Order",
+    "total": "Total",
+    "items": "Items",
+    "supplier": "Supplier",
+    "consumer": "Customer",
+    "createdAt": "Created"
+  },
+  "complaints": {
+    "title": "Complaints",
+    "create": "Create Complaint",
+    "description": "Description",
+    "submit": "Submit Complaint",
+    "escalate": "Escalate",
+    "resolve": "Resolve",
+    "status": {
+      "open": "Open",
+      "inProgress": "In Progress",
+      "escalated": "Escalated",
+      "resolved": "Resolved"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "myProfile": "My Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "about": "About",
+    "version": "Version"
+  },
+  "language": {
+    "english": "English",
+    "russian": "Русский",
+    "changeLanguage": "Change Language",
+    "languageChanged": "Language changed to {{language}}"
+  }
+}
