@@ -9,21 +9,25 @@ import {
   TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { productsApi, suppliersApi } from '@/api';
-import { ProductOut, SupplierOut } from '@/types';
+import { productsApi, suppliersApi, linksApi } from '@/api';
+import { ProductOut, SupplierOut, LinkOut } from '@/types';
 import { Button, Card } from '@/components/ui';
 import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/contexts/ToastContext';
 import { colors, typography, spacing } from '@/theme';
 
 export default function CatalogScreen() {
   const { supplier_id } = useLocalSearchParams<{ supplier_id: string }>();
   const router = useRouter();
   const { addItem, getItemQuantity } = useCart();
+  const { showSuccess, showError, showWarning } = useToast();
 
   const [supplier, setSupplier] = useState<SupplierOut | null>(null);
   const [products, setProducts] = useState<ProductOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [hasAcceptedLink, setHasAcceptedLink] = useState(false);
+  const [isRequestingLink, setIsRequestingLink] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -32,16 +36,36 @@ export default function CatalogScreen() {
   const loadData = async () => {
     try {
       const supplierId = parseInt(supplier_id);
-      const [allSuppliers, productsData] = await Promise.all([
+
+      // Load supplier info and check links
+      const [allSuppliers, myLinks] = await Promise.all([
         suppliersApi.listAll(),
-        productsApi.listBySupplier(supplierId),
+        linksApi.listMyLinks(),
       ]);
+
       const supplierData = allSuppliers.find((s) => s.id === supplierId);
       setSupplier(supplierData || null);
-      setProducts(productsData.filter((p: ProductOut) => p.is_active));
+
+      // Check if we have an accepted link with this supplier
+      const link = myLinks.find((l: LinkOut) => l.supplier_id === supplierId);
+      const hasLink = link && link.status === 'ACCEPTED';
+      setHasAcceptedLink(hasLink);
+
+      if (hasLink) {
+        // Only load products if we have an accepted link
+        const productsData = await productsApi.listBySupplier(supplierId);
+        setProducts(productsData.filter((p: ProductOut) => p.is_active));
+      } else {
+        setProducts([]);
+      }
     } catch (error: any) {
       console.error('Failed to load catalog:', error);
-      Alert.alert('Error', 'Failed to load products');
+      console.error('Error details:', {
+        status: error.status,
+        response: error.response?.data,
+        config: error.config
+      });
+      showError(`Failed to load catalog: ${error.response?.data?.detail || error.message}`);
       router.back();
     } finally {
       setIsLoading(false);
@@ -52,23 +76,40 @@ export default function CatalogScreen() {
     const quantity = quantities[product.id] || product.moq;
 
     if (quantity < product.moq) {
-      Alert.alert('Invalid Quantity', `Minimum order quantity is ${product.moq} ${product.unit}`);
+      showWarning(`Minimum order quantity is ${product.moq} ${product.unit}`);
       return;
     }
 
     if (quantity > product.stock) {
-      Alert.alert('Insufficient Stock', `Only ${product.stock} ${product.unit} available`);
+      showWarning(`Only ${product.stock} ${product.unit} available`);
       return;
     }
 
     addItem(product, quantity);
-    Alert.alert('Success', `Added ${quantity} ${product.unit} to cart`);
+    showSuccess(`✅ Added ${quantity} ${product.unit} of ${product.name} to cart!`);
     setQuantities((prev) => ({ ...prev, [product.id]: product.moq }));
   };
 
   const handleQuantityChange = (productId: number, value: string) => {
     const quantity = parseInt(value) || 0;
     setQuantities((prev) => ({ ...prev, [productId]: quantity }));
+  };
+
+  const handleRequestLink = async () => {
+    if (!supplier) return;
+
+    setIsRequestingLink(true);
+    try {
+      await linksApi.requestLink(supplier.id);
+      showSuccess(`Link request sent to ${supplier.name}!`);
+      // Reload data to check new link status
+      loadData();
+    } catch (error: any) {
+      console.error('Failed to request link:', error);
+      showError(error.response?.data?.detail || 'Failed to request link');
+    } finally {
+      setIsRequestingLink(false);
+    }
   };
 
   const renderProductItem = ({ item }: { item: ProductOut }) => {
@@ -146,7 +187,22 @@ export default function CatalogScreen() {
           )}
         </View>
 
-        {products.length === 0 ? (
+        {!hasAcceptedLink ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>🔗 Link Required</Text>
+            <Text style={styles.emptySubtext}>
+              You need an accepted link with {supplier?.name} to view their products and prices.
+            </Text>
+            <Button
+              onPress={handleRequestLink}
+              loading={isRequestingLink}
+              disabled={isRequestingLink}
+              style={styles.requestButton}
+            >
+              {isRequestingLink ? 'Requesting...' : 'Request Link'}
+            </Button>
+          </View>
+        ) : products.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>No products available</Text>
             <Text style={styles.emptySubtext}>This supplier has no active products yet</Text>
@@ -293,5 +349,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.foreground.tertiary,
     textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  requestButton: {
+    minWidth: 200,
   },
 });

@@ -49,6 +49,13 @@ export default function SupplierLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
+      {/* Hide order detail from tab bar */}
+      <Tabs.Screen
+        name="orders/[order_id]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

@@ -42,6 +42,13 @@ export default function ConsumerLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
         }}
       />
+      {/* Hide detail screens from tab bar */}
+      <Tabs.Screen
+        name="orders/[order_id]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

@@ -6,13 +6,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { ordersApi } from '@/api';
-import { Order } from '@/types';
+import { Order, OrderStatus } from '@/types';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
-import { OrderStatus } from '@/enums';
 
 export default function SupplierOrderDetailScreen() {
   const { order_id } = useLocalSearchParams<{ order_id: string }>();
@@ -39,64 +39,86 @@ export default function SupplierOrderDetailScreen() {
     }
   };
 
+  const refreshOrder = async () => {
+    try {
+      const orderId = parseInt(order_id);
+      const data = await ordersApi.getDetail(orderId);
+      setOrder(data);
+    } catch (error: any) {
+      console.error('Failed to refresh order:', error);
+    }
+  };
+
   const handleAccept = async () => {
     if (!order) return;
 
-    Alert.alert('Accept Order', 'Accept this order?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Accept',
-        onPress: async () => {
-          setIsProcessing(true);
-          try {
-            const updatedOrder = await ordersApi.accept(order.id);
-            setOrder(updatedOrder);
-            Alert.alert('Success', 'Order accepted');
-          } catch (error: any) {
-            console.error('Failed to accept order:', error);
-            Alert.alert('Error', error.response?.data?.detail || 'Failed to accept order');
-          } finally {
-            setIsProcessing(false);
-          }
-        },
-      },
-    ]);
+    const execute = async () => {
+      setIsProcessing(true);
+      try {
+        await ordersApi.accept(order.id);
+        await refreshOrder();
+        Alert.alert('Success', 'Order accepted');
+      } catch (error: any) {
+        console.error('Failed to accept order:', error);
+        Alert.alert('Error', error.response?.data?.detail || 'Failed to accept order');
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Accept this order?');
+      if (confirmed) {
+        await execute();
+      }
+    } else {
+      Alert.alert('Accept Order', 'Accept this order?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Accept', onPress: execute },
+      ]);
+    }
   };
 
   const handleReject = async () => {
     if (!order) return;
 
-    Alert.alert('Reject Order', 'Are you sure you want to reject this order?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reject',
-        style: 'destructive',
-        onPress: async () => {
-          setIsProcessing(true);
-          try {
-            const updatedOrder = await ordersApi.reject(order.id);
-            setOrder(updatedOrder);
-            Alert.alert('Order Rejected', 'The order has been cancelled');
-          } catch (error: any) {
-            console.error('Failed to reject order:', error);
-            Alert.alert('Error', error.response?.data?.detail || 'Failed to reject order');
-          } finally {
-            setIsProcessing(false);
-          }
-        },
-      },
-    ]);
+    const execute = async () => {
+      setIsProcessing(true);
+      try {
+        await ordersApi.reject(order.id);
+        await refreshOrder();
+        Alert.alert('Order Rejected', 'The order has been cancelled');
+      } catch (error: any) {
+        console.error('Failed to reject order:', error);
+        Alert.alert('Error', error.response?.data?.detail || 'Failed to reject order');
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Reject this order?');
+      if (confirmed) {
+        await execute();
+      }
+    } else {
+      Alert.alert('Reject Order', 'Are you sure you want to reject this order?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Reject', style: 'destructive', onPress: execute },
+      ]);
+    }
   };
 
   const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
-      case OrderStatus.PENDING:
+      case OrderStatus.CREATED:
         return 'pending';
       case OrderStatus.ACCEPTED:
         return 'accepted';
       case OrderStatus.COMPLETED:
         return 'completed';
       case OrderStatus.CANCELLED:
+      case OrderStatus.REJECTED:
         return 'cancelled';
       default:
         return 'default';
@@ -139,35 +161,42 @@ export default function SupplierOrderDetailScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
-          {order.items.map((item, index) => (
-            <Card key={index} style={styles.itemCard}>
-              <View style={styles.itemRow}>
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName}>{item.product.name}</Text>
-                  <Text style={styles.itemMeta}>
-                    {item.quantity} {item.product.unit} × ${item.price.toFixed(2)}
+          {order.items.map((item, index) => {
+            const unitPrice = item.unit_price ?? (item as any).price ?? item.product?.price ?? 0;
+            const total = (item.quantity || 0) * unitPrice;
+            const unitLabel = item.product?.unit || 'unit';
+            const productName = item.product?.name || 'Item';
+
+            return (
+              <Card key={index} style={styles.itemCard}>
+                <View style={styles.itemRow}>
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName}>{productName}</Text>
+                    <Text style={styles.itemMeta}>
+                      {item.quantity} {unitLabel} × ${unitPrice.toFixed(2)}
+                    </Text>
+                  </View>
+                  <Text style={styles.itemTotal}>
+                    ${total.toFixed(2)}
                   </Text>
                 </View>
-                <Text style={styles.itemTotal}>
-                  ${(item.quantity * item.price).toFixed(2)}
-                </Text>
-              </View>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </View>
 
         <Card style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>${order.total_price.toFixed(2)}</Text>
+            <Text style={styles.summaryValue}>${order.total_amount.toFixed(2)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>${order.total_price.toFixed(2)}</Text>
+            <Text style={styles.totalValue}>${order.total_amount.toFixed(2)}</Text>
           </View>
         </Card>
 
-        {order.status === OrderStatus.PENDING && (
+        {order.status === OrderStatus.CREATED && (
           <View style={styles.actionContainer}>
             <Button
               onPress={handleReject}

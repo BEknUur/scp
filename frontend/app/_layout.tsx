@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { CartProvider } from '@/contexts/CartContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { Role } from '@/enums';
 import { View, ActivityIndicator } from 'react-native';
 
@@ -65,8 +66,10 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
         <CartProvider>
-          <RootLayoutNav />
-          <StatusBar style="auto" />
+          <ToastProvider>
+            <RootLayoutNav />
+            <StatusBar style="auto" />
+          </ToastProvider>
         </CartProvider>
       </AuthProvider>
     </ThemeProvider>

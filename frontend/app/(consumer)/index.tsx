@@ -140,7 +140,11 @@ export default function ConsumerHomeScreen() {
             </View>
           ) : (
             <View style={styles.suppliersList}>
-              {suppliers.map((supplier) => renderSupplierItem({ item: supplier }))}
+              {suppliers.map((supplier) => (
+                <View key={supplier.id}>
+                  {renderSupplierItem({ item: supplier })}
+                </View>
+              ))}
             </View>
           )}
         </View>

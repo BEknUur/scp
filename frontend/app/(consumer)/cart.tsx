@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/contexts/ToastContext';
 import { ordersApi } from '@/api';
 import { Button, Card } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
@@ -18,6 +19,7 @@ import { OrderCreate } from '@/types';
 export default function CartScreen() {
   const router = useRouter();
   const { items, totalPrice, removeItem, updateQuantity, clearCart } = useCart();
+  const { showSuccess, showError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleUpdateQuantity = (productId: number, value: string) => {
@@ -64,24 +66,38 @@ export default function CartScreen() {
         return ordersApi.create(orderData);
       });
 
-      await Promise.all(orderPromises);
+      const createdOrders = await Promise.all(orderPromises);
+
+      // Calculate total items and amount
+      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+      const totalAmount = totalPrice;
+
+      // Show success toast
+      showSuccess(
+        `🎉 Order Created! ${createdOrders.length} order${createdOrders.length > 1 ? 's' : ''} • ${totalItems} item${totalItems > 1 ? 's' : ''} • $${totalAmount.toFixed(2)}`,
+        6000
+      );
+
+      // Clear cart and show options
+      clearCart();
 
       Alert.alert(
-        'Success',
-        `Created ${orderPromises.length} order${orderPromises.length > 1 ? 's' : ''}!`,
+        'What\'s Next?',
+        `Your order${createdOrders.length > 1 ? 's have' : ' has'} been sent to the supplier${createdOrders.length > 1 ? 's' : ''} for review.`,
         [
           {
-            text: 'View Orders',
-            onPress: () => {
-              clearCart();
-              router.push('/(consumer)/orders' as any);
-            },
+            text: 'Continue Shopping',
+            onPress: () => router.push('/(consumer)' as any),
+          },
+          {
+            text: 'View My Orders',
+            onPress: () => router.push('/(consumer)/orders' as any),
           },
         ]
       );
     } catch (error: any) {
       console.error('Failed to create order:', error);
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to create order');
+      showError(error.response?.data?.detail || 'Failed to create order');
     } finally {
       setIsSubmitting(false);
     }
@@ -177,7 +193,7 @@ export default function CartScreen() {
           disabled={isSubmitting}
           fullWidth
         >
-          Place Order
+          {isSubmitting ? 'Creating Order...' : 'Place Order'}
         </Button>
       </View>
     </View>
