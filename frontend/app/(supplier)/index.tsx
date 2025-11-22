@@ -1,8 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { suppliersApi } from '@/api';
 import { SupplierOut } from '@/types';
+import { Card } from '@/components/ui';
+import { colors, typography, spacing, radius } from '@/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SupplierDashboardScreen() {
   const { user } = useAuth();
@@ -39,78 +50,149 @@ export default function SupplierDashboardScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Supplier Dashboard</Text>
-      <Text style={styles.subtitle}>Email: {user?.email}</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        {/* Header with Avatar */}
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Ionicons name="business" size={32} color={colors.background.primary} />
+          </View>
+          <Text style={styles.headerTitle}>Supplier Dashboard</Text>
+          <Text style={styles.headerSubtitle}>{user?.email}</Text>
+        </View>
 
-      {supplier ? (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Company Information</Text>
-          <Text style={styles.label}>Name</Text>
-          <Text style={styles.value}>{supplier.name}</Text>
-          {supplier.description && (
-            <>
-              <Text style={styles.label}>Description</Text>
-              <Text style={styles.value}>{supplier.description}</Text>
-            </>
-          )}
-        </View>
-      ) : (
-        <View style={styles.card}>
-          <Text style={styles.noDataText}>
-            No company found. Create your company profile to get started.
-          </Text>
-        </View>
-      )}
-    </View>
+        {/* Company Information Card */}
+        {supplier ? (
+          <Card style={styles.card}>
+            <Text style={styles.cardTitle}>Company Information</Text>
+
+            <View style={styles.infoGrid}>
+              <View style={styles.infoItem}>
+                <Text style={styles.label}>Company Name</Text>
+                <Text style={styles.value}>{supplier.name}</Text>
+              </View>
+
+              {supplier.description && (
+                <View style={styles.infoItem}>
+                  <Text style={styles.label}>Description</Text>
+                  <Text style={styles.value}>{supplier.description}</Text>
+                </View>
+              )}
+            </View>
+          </Card>
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons
+              name="business-outline"
+              size={64}
+              color={colors.foreground.tertiary}
+              style={styles.emptyIcon}
+            />
+            <Text style={styles.emptyText}>No Company Found</Text>
+            <Text style={styles.emptySubtext}>
+              Create your company profile to get started with managing your supplier account
+            </Text>
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  content: {
+    flex: 1,
+    maxWidth: 600,
+    width: '100%',
+    alignSelf: 'center',
+    padding: spacing.lg,
+    paddingBottom: spacing['4xl'],
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
+  header: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+    paddingTop: spacing.md,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.foreground.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  headerTitle: {
+    ...typography.h2,
+    marginBottom: spacing.xs,
+  },
+  headerSubtitle: {
+    ...typography.body,
+    color: colors.foreground.secondary,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 10,
+    marginBottom: spacing.lg,
+    padding: spacing.lg,
   },
   cardTitle: {
-    fontSize: 18,
+    ...typography.h4,
+    marginBottom: spacing.lg,
     fontWeight: '600',
-    marginBottom: 16,
+  },
+  infoGrid: {
+    gap: spacing.md,
+  },
+  infoItem: {
+    gap: spacing.xs,
   },
   label: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 12,
-    marginBottom: 4,
+    ...typography.caption,
+    color: colors.foreground.secondary,
+    fontWeight: '500',
+    fontSize: 12,
   },
   value: {
-    fontSize: 16,
-    color: '#333',
+    ...typography.body,
+    color: colors.foreground.primary,
+    fontWeight: '500',
   },
-  noDataText: {
-    fontSize: 16,
-    color: '#666',
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['4xl'],
+  },
+  emptyIcon: {
+    marginBottom: spacing.lg,
+  },
+  emptyText: {
+    ...typography.h3,
+    color: colors.foreground.secondary,
+    marginBottom: spacing.sm,
+  },
+  emptySubtext: {
+    ...typography.body,
+    color: colors.foreground.tertiary,
     textAlign: 'center',
   },
 });

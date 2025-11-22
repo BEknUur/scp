@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { CartProvider } from '@/contexts/CartContext';
 import { Role } from '@/enums';
 import { View, ActivityIndicator } from 'react-native';
 
@@ -22,23 +23,24 @@ function RootLayoutNav() {
     const inSupplierGroup = segments[0] === '(supplier)';
 
     if (!isAuthenticated) {
-      // Redirect to login if not authenticated
-      if (!inAuthGroup) {
-        router.replace('/(auth)/login');
+      // Allow landing page and auth screens for non-authenticated users
+      // Only redirect to login if trying to access protected routes
+      if (inConsumerGroup || inSupplierGroup) {
+        router.replace('/');
       }
     } else {
       // Redirect based on role
-      if (inAuthGroup) {
+      if (inAuthGroup || segments[0] === undefined) {
         if (user?.role === Role.CONSUMER) {
           router.replace('/(consumer)');
-        } else if (user?.role === Role.SUPPLIER_OWNER) {
+        } else if (user?.role === Role.SUPPLIER_OWNER || user?.role === Role.SUPPLIER_MANAGER || user?.role === Role.SUPPLIER_SALES) {
           router.replace('/(supplier)');
         }
       } else {
         // Check if user is in correct role group
         if (user?.role === Role.CONSUMER && !inConsumerGroup) {
           router.replace('/(consumer)');
-        } else if (user?.role === Role.SUPPLIER_OWNER && !inSupplierGroup) {
+        } else if ((user?.role === Role.SUPPLIER_OWNER || user?.role === Role.SUPPLIER_MANAGER || user?.role === Role.SUPPLIER_SALES) && !inSupplierGroup) {
           router.replace('/(supplier)');
         }
       }
@@ -62,8 +64,10 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <RootLayoutNav />
-        <StatusBar style="auto" />
+        <CartProvider>
+          <RootLayoutNav />
+          <StatusBar style="auto" />
+        </CartProvider>
       </AuthProvider>
     </ThemeProvider>
   );

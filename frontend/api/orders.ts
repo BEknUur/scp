@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import apiClient from './client';
 import { Order, OrderCreate } from '@/types';
 
 export const ordersApi = {
@@ -7,8 +7,14 @@ export const ordersApi = {
     return response.data;
   },
 
-  getMyOrders: async (): Promise<Order[]> => {
-    const response = await apiClient.get('/orders/me');
+  getMyOrders: async (status?: string): Promise<Order[]> => {
+    const params = status ? { status } : {};
+    const response = await apiClient.get('/orders/me', { params });
+    return response.data;
+  },
+
+  getDetail: async (orderId: number): Promise<Order> => {
+    const response = await apiClient.get(`/orders/${orderId}`);
     return response.data;
   },
 

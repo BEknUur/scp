@@ -5,4 +5,5 @@ export { productsApi } from './products';
 export { ordersApi } from './orders';
 export { chatApi } from './chat';
 export { complaintsApi } from './complaints';
+export { staffApi } from './staff';
 export { default as apiClient } from './client';

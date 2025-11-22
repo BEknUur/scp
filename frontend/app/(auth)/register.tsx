@@ -2,17 +2,18 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   ScrollView,
+  TouchableOpacity,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button, Input } from '@/components/ui';
+import { colors, typography, spacing, radius } from '@/theme';
 import { Role } from '@/enums';
 
 export default function RegisterScreen() {
@@ -42,7 +43,6 @@ export default function RegisterScreen() {
     setIsLoading(true);
     try {
       await register({ email, password, role: selectedRole });
-      // Navigation будет обработана в _layout.tsx
     } catch (error: any) {
       Alert.alert(
         'Registration Failed',
@@ -58,101 +58,133 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join SCP Platform</Text>
-
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              editable={!isLoading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Password (min 6 characters)"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!isLoading}
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              editable={!isLoading}
-            />
-
-            <View style={styles.roleContainer}>
-              <Text style={styles.roleLabel}>I am a:</Text>
-              <View style={styles.roleButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.roleButton,
-                    selectedRole === Role.CONSUMER && styles.roleButtonActive,
-                  ]}
-                  onPress={() => setSelectedRole(Role.CONSUMER)}
-                  disabled={isLoading}
-                >
-                  <Text
-                    style={[
-                      styles.roleButtonText,
-                      selectedRole === Role.CONSUMER && styles.roleButtonTextActive,
-                    ]}
-                  >
-                    Consumer (Buyer)
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.roleButton,
-                    selectedRole === Role.SUPPLIER_OWNER && styles.roleButtonActive,
-                  ]}
-                  onPress={() => setSelectedRole(Role.SUPPLIER_OWNER)}
-                  disabled={isLoading}
-                >
-                  <Text
-                    style={[
-                      styles.roleButtonText,
-                      selectedRole === Role.SUPPLIER_OWNER && styles.roleButtonTextActive,
-                    ]}
-                  >
-                    Supplier (Seller)
-                  </Text>
-                </TouchableOpacity>
-              </View>
+          <View style={styles.formWrapper}>
+            <View style={styles.logoContainer}>
+              <Image
+                source={require('@/assets/images/logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
             </View>
 
-            <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Register</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.header}>
+              <Text style={styles.title}>Create account</Text>
+              <Text style={styles.subtitle}>Get started with SCP Platform</Text>
+            </View>
 
-            <TouchableOpacity
-              onPress={() => router.back()}
-              disabled={isLoading}
-            >
-              <Text style={styles.linkText}>
-                Already have an account? <Text style={styles.linkTextBold}>Login</Text>
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.form}>
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@example.com"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                containerStyle={styles.input}
+              />
+
+              <Input
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                containerStyle={styles.input}
+              />
+
+              <Input
+                label="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="••••••••"
+                secureTextEntry
+                containerStyle={styles.input}
+              />
+
+              <View style={styles.roleSection}>
+                <Text style={styles.roleLabel}>Account type</Text>
+                <View style={styles.roleButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.roleButton,
+                      selectedRole === Role.CONSUMER && styles.roleButtonActive,
+                    ]}
+                    onPress={() => setSelectedRole(Role.CONSUMER)}
+                    disabled={isLoading}
+                  >
+                    <View
+                      style={[
+                        styles.radio,
+                        selectedRole === Role.CONSUMER && styles.radioActive,
+                      ]}
+                    >
+                      {selectedRole === Role.CONSUMER && <View style={styles.radioInner} />}
+                    </View>
+                    <View style={styles.roleContent}>
+                      <Text
+                        style={[
+                          styles.roleTitle,
+                          selectedRole === Role.CONSUMER && styles.roleTitleActive,
+                        ]}
+                      >
+                        Consumer
+                      </Text>
+                      <Text style={styles.roleSubtitle}>Buy from suppliers</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.roleButton,
+                      selectedRole === Role.SUPPLIER_OWNER && styles.roleButtonActive,
+                    ]}
+                    onPress={() => setSelectedRole(Role.SUPPLIER_OWNER)}
+                    disabled={isLoading}
+                  >
+                    <View
+                      style={[
+                        styles.radio,
+                        selectedRole === Role.SUPPLIER_OWNER && styles.radioActive,
+                      ]}
+                    >
+                      {selectedRole === Role.SUPPLIER_OWNER && <View style={styles.radioInner} />}
+                    </View>
+                    <View style={styles.roleContent}>
+                      <Text
+                        style={[
+                          styles.roleTitle,
+                          selectedRole === Role.SUPPLIER_OWNER && styles.roleTitleActive,
+                        ]}
+                      >
+                        Supplier
+                      </Text>
+                      <Text style={styles.roleSubtitle}>Sell to consumers</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <Button
+                onPress={handleRegister}
+                loading={isLoading}
+                disabled={isLoading}
+                fullWidth
+              >
+                Create Account
+              </Button>
+            </View>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Already have an account?</Text>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text style={styles.footerLink}>Sign in</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -163,7 +195,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.primary,
   },
   scrollContent: {
     flexGrow: 1,
@@ -171,88 +203,114 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
-    paddingTop: 60,
+    alignItems: 'center',
+    padding: spacing.lg,
+    paddingVertical: spacing['4xl'],
+  },
+  formWrapper: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing['3xl'],
+  },
+  logo: {
+    width: 80,
+    height: 80,
+  },
+  header: {
+    marginBottom: spacing['2xl'],
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-    color: '#333',
+    ...typography.h2,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
+    ...typography.body,
+    color: colors.foreground.secondary,
   },
   form: {
-    gap: 16,
+    gap: spacing.lg,
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    marginBottom: 0,
   },
-  roleContainer: {
-    marginVertical: 8,
+  roleSection: {
+    gap: spacing.sm,
   },
   roleLabel: {
-    fontSize: 16,
+    ...typography.bodySmall,
     fontWeight: '600',
-    marginBottom: 12,
-    color: '#333',
+    color: colors.foreground.primary,
+    marginBottom: spacing.xs,
   },
   roleButtons: {
-    gap: 12,
+    gap: spacing.sm,
   },
   roleButton: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 2,
-    borderColor: '#ddd',
+    flexDirection: 'row',
     alignItems: 'center',
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border.primary,
+    borderRadius: radius.md,
+    backgroundColor: colors.background.primary,
   },
   roleButtonActive: {
-    borderColor: '#007AFF',
-    backgroundColor: '#E6F2FF',
+    borderColor: colors.foreground.primary,
+    backgroundColor: colors.background.secondary,
   },
-  roleButtonText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
-  },
-  roleButtonTextActive: {
-    color: '#007AFF',
-    fontWeight: '600',
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    padding: 16,
+  radio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.border.secondary,
     alignItems: 'center',
-    marginTop: 8,
+    justifyContent: 'center',
+    marginRight: spacing.md,
   },
-  buttonDisabled: {
-    backgroundColor: '#999',
+  radioActive: {
+    borderColor: colors.foreground.primary,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+  radioInner: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.foreground.primary,
+  },
+  roleContent: {
+    flex: 1,
+  },
+  roleTitle: {
+    ...typography.body,
     fontWeight: '600',
+    color: colors.foreground.secondary,
+    marginBottom: 2,
   },
-  linkText: {
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 8,
+  roleTitleActive: {
+    color: colors.foreground.primary,
   },
-  linkTextBold: {
-    color: '#007AFF',
+  roleSubtitle: {
+    ...typography.caption,
+    color: colors.foreground.tertiary,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing['2xl'],
+    gap: spacing.xs,
+  },
+  footerText: {
+    ...typography.bodySmall,
+    color: colors.foreground.secondary,
+  },
+  footerLink: {
+    ...typography.bodySmall,
+    color: colors.foreground.primary,
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

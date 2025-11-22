@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
+  TouchableOpacity,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button, Input } from '@/components/ui';
+import { colors, typography, spacing } from '@/theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -28,7 +29,6 @@ export default function LoginScreen() {
     setIsLoading(true);
     try {
       await login({ email, password });
-      // Navigation будет обработана в _layout.tsx
     } catch (error: any) {
       Alert.alert('Login Failed', error.response?.data?.detail || 'Invalid credentials');
     } finally {
@@ -42,49 +42,57 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>SCP Platform</Text>
-        <Text style={styles.subtitle}>Supplier-Consumer Connection</Text>
+        <View style={styles.formWrapper}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            editable={!isLoading}
-          />
+          <View style={styles.header}>
+            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.subtitle}>Sign in to your account</Text>
+          </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!isLoading}
-          />
+          <View style={styles.form}>
+            <Input
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@example.com"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              containerStyle={styles.input}
+            />
 
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Login</Text>
-            )}
-          </TouchableOpacity>
+            <Input
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              secureTextEntry
+              containerStyle={styles.input}
+            />
 
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/register')}
-            disabled={isLoading}
-          >
-            <Text style={styles.linkText}>
-              Don't have an account? <Text style={styles.linkTextBold}>Register</Text>
-            </Text>
-          </TouchableOpacity>
+            <Button
+              onPress={handleLogin}
+              loading={isLoading}
+              disabled={isLoading}
+              fullWidth
+              style={styles.button}
+            >
+              Sign In
+            </Button>
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <Text style={styles.footerLink}>Sign up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -94,59 +102,61 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  formWrapper: {
+    width: '100%',
+    maxWidth: 400,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing['3xl'],
+  },
+  logo: {
+    width: 80,
+    height: 80,
+  },
+  header: {
+    marginBottom: spacing['2xl'],
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-    color: '#333',
+    ...typography.h2,
+    marginBottom: spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
+    ...typography.body,
+    color: colors.foreground.secondary,
   },
   form: {
-    gap: 16,
+    gap: spacing.lg,
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    marginBottom: 0,
   },
   button: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    padding: 16,
+    marginTop: spacing.sm,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: spacing['2xl'],
+    gap: spacing.xs,
   },
-  buttonDisabled: {
-    backgroundColor: '#999',
+  footerText: {
+    ...typography.bodySmall,
+    color: colors.foreground.secondary,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+  footerLink: {
+    ...typography.bodySmall,
+    color: colors.foreground.primary,
     fontWeight: '600',
-  },
-  linkText: {
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 8,
-  },
-  linkTextBold: {
-    color: '#007AFF',
-    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

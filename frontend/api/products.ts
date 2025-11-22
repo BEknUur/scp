@@ -27,4 +27,11 @@ export const productsApi = {
     });
     return response.data;
   },
+
+  listBySupplier: async (supplierId: number): Promise<ProductOut[]> => {
+    const response = await apiClient.get<ProductOut[]>('/products', {
+      params: { supplier_id: supplierId },
+    });
+    return response.data;
+  },
 };

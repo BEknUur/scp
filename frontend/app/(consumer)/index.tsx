@@ -8,14 +8,19 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { suppliersApi, linksApi } from '@/api';
 import { SupplierOut, LinkOut } from '@/types';
 import { LinkStatus } from '@/enums';
+import { Card, Button, Badge } from '@/components/ui';
+import { colors, typography, spacing } from '@/theme';
 
 export default function ConsumerHomeScreen() {
   const { user } = useAuth();
+  const router = useRouter();
   const [suppliers, setSuppliers] = useState<SupplierOut[]>([]);
   const [myLinks, setMyLinks] = useState<LinkOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,43 +66,45 @@ export default function ConsumerHomeScreen() {
     const linkStatus = getLinkStatus(item.id);
 
     return (
-      <View style={styles.card}>
-        <View style={styles.cardContent}>
-          <Text style={styles.supplierName}>{item.name}</Text>
-          {item.description && (
-            <Text style={styles.supplierDescription}>{item.description}</Text>
-          )}
+      <Card style={styles.supplierCard}>
+        <View style={styles.supplierHeader}>
+          <View style={styles.supplierInfo}>
+            <Text style={styles.supplierName}>{item.name}</Text>
+            {item.description && (
+              <Text style={styles.supplierDescription}>{item.description}</Text>
+            )}
+          </View>
         </View>
 
-        <View style={styles.cardActions}>
+        <View style={styles.supplierActions}>
           {!linkStatus && (
-            <TouchableOpacity
-              style={styles.buttonPrimary}
-              onPress={() => handleRequestLink(item.id)}
-            >
-              <Text style={styles.buttonTextPrimary}>Request Link</Text>
-            </TouchableOpacity>
+            <Button size="sm" onPress={() => handleRequestLink(item.id)}>
+              Request Link
+            </Button>
           )}
 
           {linkStatus === LinkStatus.PENDING && (
-            <View style={styles.badgePending}>
-              <Text style={styles.badgeText}>Pending</Text>
-            </View>
+            <Badge variant="pending">Pending</Badge>
           )}
 
           {linkStatus === LinkStatus.ACCEPTED && (
-            <View style={styles.badgeAccepted}>
-              <Text style={styles.badgeText}>Connected</Text>
+            <View style={styles.connectedActions}>
+              <Button
+                size="sm"
+                onPress={() => router.push(`/(consumer)/catalog/${item.id}` as any)}
+                style={styles.viewButton}
+              >
+                View Products
+              </Button>
+              <Badge variant="accepted">Connected</Badge>
             </View>
           )}
 
           {linkStatus === LinkStatus.BLOCKED && (
-            <View style={styles.badgeBlocked}>
-              <Text style={styles.badgeText}>Blocked</Text>
-            </View>
+            <Badge variant="rejected">Blocked</Badge>
           )}
         </View>
-      </View>
+      </Card>
     );
   };
 
@@ -110,38 +117,56 @@ export default function ConsumerHomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Find Suppliers</Text>
-        <Text style={styles.headerSubtitle}>Connect with suppliers to view their products</Text>
-      </View>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.content}>
+        <View style={styles.contentWrapper}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Find Suppliers</Text>
+            <Text style={styles.headerSubtitle}>
+              Connect with suppliers to view their products
+            </Text>
+          </View>
 
-      {suppliers.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No suppliers available yet</Text>
-          <Text style={styles.emptySubtext}>
-            Check back later or contact support to add suppliers
-          </Text>
+          {suppliers.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No suppliers available yet</Text>
+              <Text style={styles.emptySubtext}>
+                Check back later or contact support to add suppliers
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.suppliersList}>
+              {suppliers.map((supplier) => renderSupplierItem({ item: supplier }))}
+            </View>
+          )}
         </View>
-      ) : (
-        <FlatList
-          data={suppliers}
-          renderItem={renderSupplierItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={loadData} />
-          }
-        />
-      )}
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    paddingVertical: spacing['4xl'],
+  },
+  contentWrapper: {
+    width: '100%',
+    maxWidth: 800,
   },
   centered: {
     flex: 1,
@@ -149,101 +174,66 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    ...typography.h2,
+    marginBottom: spacing.xs,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+    ...typography.body,
+    color: colors.foreground.secondary,
+    textAlign: 'center',
   },
-  listContent: {
-    padding: 16,
+  suppliersList: {
+    gap: spacing.md,
   },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  supplierCard: {
+    marginBottom: spacing.md,
   },
-  cardContent: {
-    marginBottom: 12,
+  supplierHeader: {
+    marginBottom: spacing.md,
+  },
+  supplierInfo: {
+    flex: 1,
   },
   supplierName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    ...typography.h4,
+    marginBottom: spacing.xs,
   },
   supplierDescription: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.body,
+    color: colors.foreground.secondary,
   },
-  cardActions: {
+  supplierActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  buttonPrimary: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+  connectedActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  buttonTextPrimary: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  badgePending: {
-    backgroundColor: '#FFA500',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  badgeAccepted: {
-    backgroundColor: '#34C759',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  badgeBlocked: {
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+  viewButton: {
+    marginRight: 0,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: spacing['4xl'],
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
+    ...typography.h3,
+    color: colors.foreground.secondary,
+    marginBottom: spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+    ...typography.body,
+    color: colors.foreground.tertiary,
     textAlign: 'center',
   },
 });
