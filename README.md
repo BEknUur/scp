@@ -1,437 +1,303 @@
 # Supplier-Consumer Platform (SCP)
 
-**B2B platform connecting food suppliers with restaurants and hotels**
+A B2B mobile and web application that connects food suppliers with institutional consumers (restaurants and hotels). This platform facilitates direct collaboration, order management, and communication between suppliers and their approved business partners.
 
-Version 1.0 MVP | CSCI 361 - Software Engineering | Fall 2025
+## Project Overview
 
----
+SCP is a private B2B platform where consumers must request and be approved for a "link" with suppliers before they can view products, prices, and place orders. This is not a public marketplace - all relationships are managed through an approval-based linking system.
 
-## 📋 Table of Contents
+### Key Features
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Project Structure](#project-structure)
-- [API Documentation](#api-documentation)
-- [User Roles](#user-roles)
-- [Development](#development)
-- [Testing](#testing)
+**For Consumers (Restaurants/Hotels):**
+- Discover and request links with suppliers
+- Browse product catalogs after link approval
+- Create bulk orders with multiple items
+- Real-time chat with supplier representatives
+- File and track complaints related to orders
+- Monitor order status and history
 
----
+**For Suppliers:**
+- Create and manage company profiles
+- Manage product catalogs (prices, stock, minimum order quantities)
+- Approve or reject consumer link requests
+- Accept or reject incoming orders
+- Multi-role system: Owner, Manager, Sales
+- Handle customer complaints with escalation workflow
+- Communicate with linked consumers via chat
 
-## 🎯 Overview
-
-The Supplier-Consumer Platform (SCP) is a B2B mobile and web application that facilitates direct collaboration between food suppliers and institutional consumers (restaurants/hotels). 
-
-**Key Concept:** This is NOT a public marketplace. Consumers must request and be approved for a "link" with suppliers before they can view products and place orders.
-
----
-
-## ✨ Features
-
-### For Consumers (Restaurants/Hotels)
-- 🔗 Request links with suppliers
-- 📦 View catalogs only after link approval
-- 🛒 Create bulk orders with multiple items
-- 💬 Chat with supplier sales representatives
-- 📝 File complaints tied to orders
-- ✅ Track order status
-
-### For Suppliers (Producers/Distributors)
-- 🏢 Create company profile
-- 📋 Manage product catalog (prices, stock, MOQ)
-- ✔️ Approve/reject link requests (Owner/Manager only)
-- 📨 Accept/reject orders (Owner/Manager only)
-- 👥 Multi-role system: Owner, Manager, Sales
-- 💬 Communicate with linked consumers
-- 🎯 Sales handles first-line complaints → escalate to Manager
-
-### Technical Features
-- 🔐 JWT authentication
-- 🎭 Role-based access control (RBAC)
-- 🗂️ Populated API responses (no N+1 queries)
-- 🐳 Docker Compose setup
-- 📱 React Native mobile app
-- 🌐 FastAPI backend
-
----
-
-## 🛠️ Tech Stack
+## Technology Stack
 
 ### Backend
-- **Framework:** FastAPI
-- **Database:** PostgreSQL
-- **ORM:** SQLAlchemy
+- **Framework:** FastAPI (Python)
+- **Database:** PostgreSQL 16
+- **ORM:** SQLAlchemy 2.0
 - **Migrations:** Alembic
-- **Authentication:** JWT (python-jose)
+- **Authentication:** JWT (JSON Web Tokens)
+- **Validation:** Pydantic
+- **Containerization:** Docker & Docker Compose
 
 ### Frontend
-- **Mobile:** React Native (Expo)
-- **Language:** TypeScript
+- **Framework:** React Native with Expo
+- **Navigation:** Expo Router
+- **State Management:** React Context API
 - **HTTP Client:** Axios
-- **State:** Context API
+- **Internationalization:** react-i18next (English, Russian)
+- **UI Components:** Custom components with theming
 
 ### Infrastructure
-- **Containerization:** Docker & Docker Compose
-- **Database:** PostgreSQL 16
+- **Containerization:** Docker Compose
+- **Database:** PostgreSQL container
+- **API Server:** Uvicorn (ASGI)
 
----
+## Prerequisites
 
-## 🚀 Quick Start
+Before running the project, ensure you have the following installed:
 
-### Prerequisites
-- Docker & Docker Compose
-- Node.js 18+ (for mobile development)
-- Git
+- Docker and Docker Compose
+- Node.js 18 or higher
+- npm or yarn
+- Make (optional, for convenience commands)
+- ngrok (for testing on physical devices)
+
+## Project Structure
+
+```
+scp/
+├── backend/          # FastAPI backend application
+│   ├── app/
+│   │   ├── core/     # Configuration, security, dependencies
+│   │   ├── models/   # SQLAlchemy database models
+│   │   ├── schemas/  # Pydantic schemas for API
+│   │   ├── routers/  # API route handlers
+│   │   ├── services/ # Business logic
+│   │   └── repositories/ # Data access layer
+│   ├── alembic/      # Database migrations
+│   └── Dockerfile
+├── frontend/          # React Native Expo application
+│   ├── app/          # Expo Router pages
+│   ├── components/   # Reusable UI components
+│   ├── api/          # API client functions
+│   ├── contexts/     # React contexts
+│   ├── hooks/        # Custom React hooks
+│   └── locales/      # i18n translation files
+├── docker-compose.yml # Docker services configuration
+└── Makefile          # Convenience commands
+```
+
+## Getting Started
 
 ### 1. Clone the Repository
+
 ```bash
 git clone <repository-url>
 cd scp
 ```
 
 ### 2. Backend Setup
+
+The backend runs in Docker containers. Start the services:
+
 ```bash
-cd backend
-
-# Create environment file
-cp .env.example .env
-
-# Start services (PostgreSQL + API)
-cd ..
-docker-compose up --build
+make start-backend
 ```
+
+Or manually:
+
+```bash
+docker compose up --build -d
+```
+
+This will start:
+- PostgreSQL database on port 5432
+- FastAPI server on port 8000
 
 The API will be available at `http://localhost:8000`
 
-**API Docs:** http://localhost:8000/docs (Swagger UI)
+API documentation (Swagger UI): `http://localhost:8000/docs`
 
-### 3. Run Migrations
+### 3. Database Migrations
+
+Run migrations to set up the database schema:
+
 ```bash
-# In a new terminal
-docker exec -it scp_api alembic upgrade head
+docker exec scp_api alembic upgrade head
 ```
 
 ### 4. Frontend Setup
+
+Install dependencies:
+
 ```bash
 cd frontend
 npm install
-npm start
 ```
 
-Choose platform:
-- Press `a` for Android
-- Press `i` for iOS
-- Press `w` for web
+Start the development server:
 
-### 5. Test Accounts
-
-Create accounts via `/auth/register` or use the mobile app:
-
-**Consumer:**
-- Email: `consumer@test.com`
-- Password: `password123`
-- Role: `CONSUMER`
-
-**Supplier Owner:**
-- Email: `owner@test.com`
-- Password: `password123`
-- Role: `SUPPLIER_OWNER`
-
----
-
-## 📁 Project Structure
-
-```
-scp/
-├── backend/
-│   ├── app/
-│   │   ├── core/           # Config, dependencies, security
-│   │   ├── db/             # Database session
-│   │   ├── enums/          # Role, Status enums
-│   │   ├── models/         # SQLAlchemy models
-│   │   ├── repositories/   # Data access layer
-│   │   ├── routers/        # FastAPI endpoints
-│   │   ├── schemas/        # Pydantic schemas
-│   │   └── services/       # Business logic
-│   ├── alembic/            # Database migrations
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/
-│   ├── api/                # API clients
-│   ├── app/                # Expo Router screens
-│   │   ├── (auth)/         # Login, Register
-│   │   ├── (consumer)/     # Consumer screens
-│   │   └── (supplier)/     # Supplier screens
-│   ├── components/         # Reusable UI components
-│   ├── contexts/           # React Context (Auth)
-│   ├── enums/              # TypeScript enums
-│   ├── types/              # TypeScript interfaces
-│   └── utils/              # Utilities
-└── docker-compose.yml
-```
-
----
-
-## 📚 API Documentation
-
-### Base URL
-```
-http://localhost:8000
-```
-
-### Key Endpoints
-
-#### Authentication
-```
-POST /auth/register         # Register new user
-POST /auth/login            # Login and get JWT token
-GET  /auth/me              # Get current user info
-```
-
-#### Suppliers
-```
-GET  /suppliers             # List all suppliers (consumer discovery)
-POST /suppliers             # Create supplier (owner only)
-GET  /suppliers/me          # Get my supplier profile
-```
-
-#### Links (Connection Management)
-```
-POST /links/{supplier_id}   # Consumer requests link
-POST /links/{link_id}/accept    # Owner/Manager accepts
-POST /links/{link_id}/reject    # Owner/Manager rejects
-GET  /links/me              # Get my links
-```
-
-#### Products
-```
-GET  /products              # List products (filtered by supplier)
-POST /products              # Create product (owner/manager)
-GET  /products/me           # Get my supplier's products
-PUT  /products/{id}         # Update product
-DELETE /products/{id}       # Delete product
-```
-
-#### Orders
-```
-POST /orders                # Consumer creates order
-GET  /orders/me             # Get my orders
-POST /orders/{id}/accept    # Supplier accepts order
-POST /orders/{id}/reject    # Supplier rejects order
-```
-
-#### Chat
-```
-POST /chat/{link_id}/messages    # Send message
-GET  /chat/{link_id}/messages    # Get messages for link
-```
-
-#### Complaints
-```
-POST /complaints                      # Create complaint
-GET  /complaints                      # List complaints
-POST /complaints/{id}/escalate        # Sales escalates to Manager
-PATCH /complaints/{id}/status         # Update status
-```
-
----
-
-## 👥 User Roles
-
-### Consumer (Restaurant/Hotel)
-- Request links with suppliers
-- View catalogs (only after link accepted)
-- Place orders
-- File complaints
-
-### Supplier Owner
-- Full control over supplier account
-- Create/manage Manager and Sales accounts
-- Approve/reject link requests
-- Accept/reject orders
-- Manage catalog
-
-### Supplier Manager
-- Same as Owner EXCEPT:
-  - Cannot create/remove Manager accounts
-  - Cannot delete supplier account
-- Manages catalog and orders
-- Resolves escalated complaints
-
-### Supplier Sales
-- Handles consumer communication (chat)
-- Receives and responds to inquiries
-- First-line complaint handling
-- **Cannot** approve links or accept orders
-- Can escalate issues to Manager/Owner
-
----
-
-## 🔧 Development
-
-### Backend Development
-
-#### Run locally (without Docker)
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# Set environment variables
-export DATABASE_URL="postgresql://nu:swe@localhost:5432/scpnu"
-export SECRET_KEY="your-secret-key"
-
-# Run migrations
-alembic upgrade head
-
-# Start server
-uvicorn app.main:app --reload
+make start-frontend
 ```
 
-#### Create new migration
+Or manually:
+
 ```bash
-cd backend
-alembic revision -m "description"
-# Edit the generated file in alembic/versions/
-alembic upgrade head
+npm run start -- --tunnel
 ```
 
-### Frontend Development
+The `--tunnel` flag uses Expo's tunnel mode, which allows you to access the app from physical devices on the same network.
 
-#### Environment Setup
+### 5. Testing on Physical Devices
+
+To test the mobile app on a physical device, you have two options:
+
+#### Option A: Using Expo Tunnel (Recommended)
+
+When you run `npm run start -- --tunnel`, Expo will provide a URL that works from any device. Scan the QR code with:
+- **iOS:** Camera app
+- **Android:** Expo Go app
+
+#### Option B: Using ngrok
+
+If you need a more stable tunnel or want to test with a custom domain:
+
+1. Install ngrok:
+```bash
+npm install -g ngrok
+# or
+brew install ngrok  # macOS
+```
+
+2. Start the frontend normally:
 ```bash
 cd frontend
-cp .env.example .env
-# Update API_URL if needed
+npm run start
 ```
 
-#### Run on different platforms
+3. In another terminal, create a tunnel:
 ```bash
-# iOS Simulator
-npm run ios
-
-# Android Emulator
-npm run android
-
-# Web browser
-npm run web
+ngrok http 8081
 ```
 
----
+4. Use the ngrok URL (e.g., `https://abc123.ngrok.io`) to access the app from your device.
 
-## 🧪 Testing
+Note: The default Expo dev server runs on port 8081. Adjust the ngrok command if your port differs.
 
-### Backend Tests
+### 6. Access the Application
+
+**Web Interface:**
+- Press `w` in the Expo terminal to open in web browser
+
+**Mobile Devices:**
+- Scan the QR code with Expo Go app (Android) or Camera app (iOS)
+- Or use the ngrok URL if configured
+
+**API:**
+- Swagger UI: http://localhost:8000/docs
+- API Base: http://localhost:8000
+
+## Environment Configuration
+
+### Backend
+
+Create a `.env` file in the `backend/` directory:
+
+```env
+DATABASE_URL=postgresql://nu:swe@db:5432/scpnu
+SECRET_KEY=your-secret-key-here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+The default configuration in `docker-compose.yml` uses:
+- Database: `scpnu`
+- User: `nu`
+- Password: `swe`
+
+### Frontend
+
+The frontend uses environment variables for API configuration. Update the API base URL in `frontend/api/client.ts` if needed.
+
+## User Roles
+
+The platform supports multiple user roles:
+
+- **CONSUMER:** Restaurants and hotels that purchase from suppliers
+- **SUPPLIER_OWNER:** Company owner with full access
+- **SUPPLIER_MANAGER:** Manager with order and link management access
+- **SUPPLIER_SALES:** Sales representative with communication and complaint handling access
+
+## Development
+
+### Running Migrations
+
+Create a new migration:
 ```bash
-cd backend
-pytest
-pytest --cov=app  # With coverage
+docker exec scp_api alembic revision -m "migration_name"
 ```
 
-### API Manual Testing
-Use the Swagger UI at `http://localhost:8000/docs` or import the OpenAPI spec into Postman.
-
----
-
-## 🗂️ Database Schema
-
-### Core Tables
-- **users** - All users (consumers + suppliers)
-- **suppliers** - Supplier companies
-- **links** - Consumer ↔ Supplier relationships
-- **products** - Supplier catalog items
-- **orders** - Bulk orders from consumers
-- **order_items** - Line items in orders
-- **messages** - Chat messages between parties
-- **complaints** - Customer complaints with escalation
-
-### Key Relationships
-- User (owner) → Supplier (1:1)
-- Consumer (user) → Link ← Supplier (M:N)
-- Link → Messages (1:N)
-- Order → OrderItems → Products
-- Link → Complaints
-
----
-
-## 🎯 MVP Scope
-
-### ✅ Included
-- Consumer-Supplier linking system
-- Catalog visible only to linked consumers
-- Order creation, acceptance/rejection
-- Chat with file support
-- Complaint handling with escalation
-- Role-based access control
-
-### ❌ Not Included (Post-MVP)
-- In-app payments
-- Delivery scheduling
-- Analytics dashboards
-- Platform Admin functionality
-- Ratings & reviews
-- Subscription management
-
----
-
-## 📝 License
-
-This project is developed as part of CSCI 361 coursework at Nazarbayev University.
-
----
-
-## 👨‍💻 Authors
-
-**Group NN** - CSCI 361 Fall 2025
-
-**Instructor:** Dr. Umair Arif, PhD
-
-**Date:** November 2025
-
----
-
-## 🆘 Troubleshooting
-
-### Docker Issues
+Apply migrations:
 ```bash
-# Reset everything
-docker-compose down -v
-docker-compose up --build
+docker exec scp_api alembic upgrade head
 ```
 
-### Database Connection Error
-Check that PostgreSQL is running:
+### Viewing Logs
+
+Backend logs:
 ```bash
-docker ps  # Should see scp_db container
+docker compose logs -f api
 ```
 
-### Migration Errors
+Database logs:
 ```bash
-# Reset database (WARNING: deletes all data)
-docker-compose down -v
-docker-compose up -d db
-docker exec -it scp_api alembic upgrade head
+docker compose logs -f db
 ```
 
-### Frontend Cannot Connect to API
-- Ensure API is running on `http://localhost:8000`
-- Check `frontend/.env` has correct `API_URL`
-- For Android emulator, use `http://10.0.2.2:8000`
-- For iOS simulator, use `http://localhost:8000`
+### Stopping Services
 
----
+Stop all services:
+```bash
+docker compose down
+```
 
-## 📞 Support
+Stop and remove volumes (clears database):
+```bash
+docker compose down -v
+```
 
-For issues and questions:
-- Check `/docs` for API documentation
-- Review SRS document for requirements
-- Contact project team
+## API Documentation
 
----
+Full API documentation is available at `http://localhost:8000/docs` when the backend is running.
 
-**Built with ❤️ for CSCI 361**
+For detailed endpoint documentation, see `BACKEND_ENDPOINTS.md`.
+
+## Internationalization
+
+The frontend supports multiple languages:
+- English (default)
+- Russian
+
+Language can be changed in the user profile settings.
+
+## Troubleshooting
+
+**Backend won't start:**
+- Check if ports 8000 and 5432 are available
+- Ensure Docker is running
+- Check logs: `docker compose logs api`
+
+**Frontend connection issues:**
+- Ensure backend is running and accessible
+- Check API base URL in `frontend/api/client.ts`
+- Verify network connectivity if using tunnel mode
+
+**Database connection errors:**
+- Ensure PostgreSQL container is running: `docker compose ps`
+- Check database credentials in `.env` file
+- Verify migrations are applied: `docker exec scp_api alembic current`
+
+**Mobile device can't connect:**
+- Ensure device is on the same network (for LAN mode)
+- Use `--tunnel` flag or ngrok for external access
+- Check firewall settings
+- Verify Expo Go app is installed on device
 
