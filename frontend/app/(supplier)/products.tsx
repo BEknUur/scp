@@ -125,17 +125,24 @@ export default function ProductsScreen() {
 
   const renderProductItem = ({ item }: { item: ProductOut }) => (
     <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.productInfo}>
-          <Text style={styles.productName}>{item.name}</Text>
-          <Text style={styles.productDetails}>
-            ${item.price} / {item.unit} • Stock: {item.stock} • MOQ: {item.moq}
+      <View style={styles.cardTop}>
+        <View style={styles.titleRow}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{item.name.slice(0, 1).toUpperCase()}</Text>
+          </View>
+          <View style={styles.productInfo}>
+            <Text style={styles.productName}>{item.name}</Text>
+            <Text style={styles.productPrice}>${item.price} / {item.unit}</Text>
+            <Text style={styles.productSubtext}>Stock: {item.stock} • MOQ: {item.moq} {item.unit}</Text>
+          </View>
+        </View>
+        <View style={[styles.statusPill, item.is_active ? styles.activePill : styles.inactivePill]}>
+          <Text style={item.is_active ? styles.statusActiveText : styles.statusInactiveText}>
+            {item.is_active ? 'Active' : 'Inactive'}
           </Text>
         </View>
-        <View style={[styles.statusBadge, item.is_active ? styles.activeBadge : styles.inactiveBadge]}>
-          <Text style={styles.statusText}>{item.is_active ? 'Active' : 'Inactive'}</Text>
-        </View>
       </View>
+
       <View style={styles.cardActions}>
         <TouchableOpacity
           style={styles.buttonEdit}
@@ -164,9 +171,12 @@ export default function ProductsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Products</Text>
+        <View>
+          <Text style={styles.headerTitle}>Products</Text>
+          <Text style={styles.headerSubtitle}>Manage items in your catalog</Text>
+        </View>
         <TouchableOpacity style={styles.addButton} onPress={openCreateModal}>
-          <Text style={styles.addButtonText}>+ Add</Text>
+          <Text style={styles.addButtonText}>Add</Text>
         </TouchableOpacity>
       </View>
 
@@ -270,7 +280,7 @@ export default function ProductsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f6f7f8',
   },
   centered: {
     flex: 1,
@@ -282,118 +292,172 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#e5e7eb',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  headerSubtitle: {
+    marginTop: 2,
+    color: '#6b7280',
+    fontSize: 13,
   },
   addButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingHorizontal: 16,
+    minWidth: 68,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#111827',
+    borderRadius: 10,
+    paddingHorizontal: 12,
     paddingVertical: 8,
   },
   addButtonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 18,
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  cardHeader: {
+  cardTop: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   productInfo: {
     flex: 1,
+    marginLeft: 12,
+  },
+  avatar: {
+    height: 42,
+    width: 42,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontWeight: '800',
+    color: '#111827',
+    fontSize: 18,
   },
   productName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
   },
-  productDetails: {
+  productPrice: {
     fontSize: 14,
-    color: '#666',
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 4,
   },
-  statusBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  activeBadge: {
-    backgroundColor: '#34C759',
-  },
-  inactiveBadge: {
-    backgroundColor: '#999',
-  },
-  statusText: {
-    color: '#fff',
+  productSubtext: {
     fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    minWidth: 74,
+    alignItems: 'center',
+  },
+  activePill: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#d1d5db',
+  },
+  inactivePill: {
+    backgroundColor: '#f9fafb',
+    borderColor: '#e5e7eb',
+  },
+  statusActiveText: {
+    color: '#111827',
     fontWeight: '600',
+    fontSize: 12,
+  },
+  statusInactiveText: {
+    color: '#6b7280',
+    fontWeight: '600',
+    fontSize: 12,
   },
   cardActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 10,
+    marginTop: 10,
+    justifyContent: 'flex-end',
   },
   buttonEdit: {
-    flex: 1,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingVertical: 10,
+    backgroundColor: '#111827',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    minWidth: 86,
     alignItems: 'center',
   },
   buttonEditText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   buttonDelete: {
-    flex: 1,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingVertical: 10,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    minWidth: 86,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   buttonDeleteText: {
-    color: '#fff',
+    color: '#111827',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    paddingHorizontal: 32,
+    paddingVertical: 64,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    color: '#6b7280',
     textAlign: 'center',
   },
   modalOverlay: {
@@ -410,22 +474,25 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontWeight: '800',
+    marginBottom: 14,
+    color: '#111827',
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 8,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
+    marginTop: 10,
   },
   input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
     padding: 12,
     fontSize: 14,
-    marginBottom: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   switchRow: {
     flexDirection: 'row',
@@ -437,30 +504,30 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 20,
+    marginTop: 18,
   },
   buttonPrimary: {
     flex: 1,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
+    backgroundColor: '#111827',
+    borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
   },
   buttonTextPrimary: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   buttonSecondary: {
     flex: 1,
-    backgroundColor: '#E5E5E5',
-    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
   },
   buttonTextSecondary: {
-    color: '#333',
+    color: '#111827',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

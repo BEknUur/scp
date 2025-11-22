@@ -3,20 +3,22 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
+  ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { linksApi } from '@/api';
 import { LinkOut } from '@/types';
 import { LinkStatus } from '@/enums';
+import { Card, Button, Badge } from '@/components/ui';
+import { colors, typography, spacing } from '@/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LinksScreen() {
+  const router = useRouter();
   const [links, setLinks] = useState<LinkOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     loadLinks();
@@ -31,7 +33,6 @@ export default function LinksScreen() {
       Alert.alert('Error', 'Failed to load link requests');
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -83,18 +84,21 @@ export default function LinksScreen() {
     ]);
   };
 
-  const getStatusColor = (status: LinkStatus) => {
+  const handleChat = (consumerId: number) => {
+    router.push(`/(supplier)/chat/${consumerId}` as any);
+  };
+
+  const getBadgeVariant = (status: LinkStatus): 'pending' | 'accepted' | 'rejected' => {
     switch (status) {
       case LinkStatus.ACCEPTED:
-        return '#34C759';
+        return 'accepted';
       case LinkStatus.PENDING:
-        return '#FFA500';
+        return 'pending';
       case LinkStatus.BLOCKED:
-        return '#FF3B30';
       case LinkStatus.REMOVED:
-        return '#999';
+        return 'rejected';
       default:
-        return '#999';
+        return 'pending';
     }
   };
 
@@ -113,60 +117,69 @@ export default function LinksScreen() {
     }
   };
 
-  const renderLinkItem = ({ item }: { item: LinkOut }) => {
-    const statusColor = getStatusColor(item.status);
-    const statusText = getStatusText(item.status);
+  const renderLinkItem = (item: LinkOut) => {
     const isPending = item.status === LinkStatus.PENDING;
     const isAccepted = item.status === LinkStatus.ACCEPTED;
 
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
+      <Card key={item.id} style={styles.linkCard}>
+        <View style={styles.linkHeader}>
           <View style={styles.consumerInfo}>
-            <Text style={styles.consumerName}>Consumer ID: {item.consumer_id}</Text>
-            <Text style={styles.linkId}>Link #{item.id}</Text>
+            <View style={styles.consumerTitleRow}>
+              <Ionicons
+                name="person"
+                size={20}
+                color={colors.foreground.primary}
+                style={styles.consumerIcon}
+              />
+              <Text style={styles.consumerName}>Consumer #{item.consumer_id}</Text>
+            </View>
+            <Text style={styles.linkId}>Link ID: {item.id}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{statusText}</Text>
-          </View>
+          <Badge variant={getBadgeVariant(item.status)}>{getStatusText(item.status)}</Badge>
         </View>
 
         {isPending && (
-          <View style={styles.cardActions}>
-            <TouchableOpacity
-              style={styles.buttonAccept}
+          <View style={styles.linkActions}>
+            <Button
+              variant="outline"
+              size="sm"
               onPress={() => handleAccept(item.id)}
+              style={styles.actionButton}
             >
-              <Text style={styles.buttonTextAccept}>Accept</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.buttonReject}
+              Accept
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onPress={() => handleBlock(item.id)}
+              style={styles.actionButton}
             >
-              <Text style={styles.buttonTextReject}>Block</Text>
-            </TouchableOpacity>
+              Block
+            </Button>
           </View>
         )}
 
         {isAccepted && (
-          <View style={styles.cardActions}>
-            <TouchableOpacity
-              style={styles.buttonSecondary}
-              onPress={() => {
-                Alert.alert('Chat', 'Chat feature coming soon');
-              }}
+          <View style={styles.linkActions}>
+            <Button
+              size="sm"
+              onPress={() => handleChat(item.consumer_id)}
+              style={styles.actionButton}
             >
-              <Text style={styles.buttonTextSecondary}>Chat</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.buttonDanger}
+              Chat
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onPress={() => handleRemove(item.id)}
+              style={styles.actionButton}
             >
-              <Text style={styles.buttonTextDanger}>Remove</Text>
-            </TouchableOpacity>
+              Remove
+            </Button>
           </View>
         )}
-      </View>
+      </Card>
     );
   };
 
@@ -179,149 +192,138 @@ export default function LinksScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {links.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No link requests yet</Text>
-          <Text style={styles.emptySubtext}>
-            Consumers will send connection requests to view your products
-          </Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        <View style={styles.contentWrapper}>
+          <View style={styles.header}>
+            <Ionicons
+              name="link"
+              size={48}
+              color={colors.foreground.primary}
+              style={styles.headerIcon}
+            />
+            <Text style={styles.headerTitle}>Connection Requests</Text>
+            <Text style={styles.headerSubtitle}>
+              Manage consumer connections and chat requests
+            </Text>
+          </View>
+
+          {links.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="link-outline"
+                size={64}
+                color={colors.foreground.tertiary}
+                style={styles.emptyIcon}
+              />
+              <Text style={styles.emptyText}>No link requests yet</Text>
+              <Text style={styles.emptySubtext}>
+                Consumers will send connection requests to view your products
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.linksList}>{links.map((link) => renderLinkItem(link))}</View>
+          )}
         </View>
-      ) : (
-        <FlatList
-          data={links}
-          renderItem={renderLinkItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={loadLinks} />
-          }
-        />
-      )}
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    padding: 16,
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    paddingVertical: spacing['4xl'],
   },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  contentWrapper: {
+    width: '100%',
+    maxWidth: 800,
   },
-  cardHeader: {
+  header: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  headerIcon: {
+    marginBottom: spacing.md,
+  },
+  headerTitle: {
+    ...typography.h2,
+    marginBottom: spacing.xs,
+  },
+  headerSubtitle: {
+    ...typography.body,
+    color: colors.foreground.secondary,
+    textAlign: 'center',
+  },
+  linksList: {
+    gap: spacing.md,
+  },
+  linkCard: {
+    marginBottom: spacing.md,
+  },
+  linkHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   consumerInfo: {
     flex: 1,
   },
+  consumerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  consumerIcon: {
+    marginRight: spacing.xs,
+  },
   consumerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    ...typography.h4,
+    flex: 1,
   },
   linkId: {
-    fontSize: 12,
-    color: '#999',
+    ...typography.caption,
+    color: colors.foreground.secondary,
   },
-  statusBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  cardActions: {
+  linkActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: spacing.sm,
   },
-  buttonAccept: {
+  actionButton: {
     flex: 1,
-    backgroundColor: '#34C759',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  buttonTextAccept: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonReject: {
-    flex: 1,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  buttonTextReject: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonSecondary: {
-    flex: 1,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  buttonTextSecondary: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  buttonDanger: {
-    flex: 1,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  buttonTextDanger: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: spacing['4xl'],
+    minHeight: 400,
+  },
+  emptyIcon: {
+    marginBottom: spacing.lg,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
+    ...typography.h3,
+    color: colors.foreground.secondary,
+    marginBottom: spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+    ...typography.body,
+    color: colors.foreground.tertiary,
     textAlign: 'center',
   },
 });

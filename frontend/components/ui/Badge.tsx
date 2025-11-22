@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { colors, typography, spacing, radius } from '@/theme';
 
-type BadgeVariant = 'default' | 'pending' | 'accepted' | 'completed' | 'cancelled';
+type BadgeVariant = 'default' | 'pending' | 'accepted' | 'completed' | 'cancelled' | 'rejected';
 
 interface BadgeProps {
   children: string;
@@ -11,7 +11,7 @@ interface BadgeProps {
 }
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', style }) => {
-  const containerStyle: ViewStyle[] = [styles.base, styles[variant], style];
+  const containerStyle = [styles.base, styles[variant], style].filter(Boolean) as ViewStyle[];
 
   const textStyle: TextStyle[] = [styles.text, styles[`text_${variant}`]];
 
@@ -51,6 +51,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.status.cancelledBg,
   },
 
+  rejected: {
+    backgroundColor: colors.semantic.errorLight,
+  },
+
   // Text styles
   text: {
     ...typography.caption,
@@ -78,5 +82,9 @@ const styles = StyleSheet.create({
 
   text_cancelled: {
     color: colors.status.cancelled,
+  },
+
+  text_rejected: {
+    color: colors.semantic.error,
   },
 });

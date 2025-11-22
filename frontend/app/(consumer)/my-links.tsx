@@ -3,52 +3,69 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
+  ScrollView,
   ActivityIndicator,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { linksApi, productsApi } from '@/api';
-import { LinkOut } from '@/types';
+import { linksApi, suppliersApi } from '@/api';
+import { LinkOut, SupplierOut } from '@/types';
 import { LinkStatus } from '@/enums';
+import { Card, Button, Badge } from '@/components/ui';
+import { colors, typography, spacing } from '@/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function MyLinksScreen() {
   const router = useRouter();
   const [links, setLinks] = useState<LinkOut[]>([]);
+  const [suppliers, setSuppliers] = useState<Map<number, SupplierOut>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    loadLinks();
+    loadData();
   }, []);
 
-  const loadLinks = async () => {
+  const loadData = async () => {
     try {
-      const data = await linksApi.listMyLinks();
-      setLinks(data);
+      const [linksData, suppliersData] = await Promise.all([
+        linksApi.listMyLinks(),
+        suppliersApi.listAll(),
+      ]);
+
+      const suppliersMap = new Map<number, SupplierOut>();
+      suppliersData.forEach((supplier) => {
+        suppliersMap.set(supplier.id, supplier);
+      });
+
+      setLinks(linksData);
+      setSuppliers(suppliersMap);
     } catch (error: any) {
       console.error('Failed to load links:', error);
       Alert.alert('Error', 'Failed to load connections');
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
-  const getStatusColor = (status: LinkStatus) => {
+  const handleViewProducts = (supplierId: number) => {
+    router.push(`/(consumer)/catalog/${supplierId}` as any);
+  };
+
+  const handleChat = (supplierId: number) => {
+    router.push(`/(consumer)/chat/${supplierId}` as any);
+  };
+
+  const getBadgeVariant = (status: LinkStatus): 'pending' | 'accepted' | 'rejected' => {
     switch (status) {
       case LinkStatus.ACCEPTED:
-        return '#34C759';
+        return 'accepted';
       case LinkStatus.PENDING:
-        return '#FFA500';
+        return 'pending';
       case LinkStatus.BLOCKED:
-        return '#FF3B30';
       case LinkStatus.REMOVED:
-        return '#999';
+        return 'rejected';
       default:
-        return '#999';
+        return 'pending';
     }
   };
 
@@ -67,57 +84,66 @@ export default function MyLinksScreen() {
     }
   };
 
-  const handleViewProducts = async (supplierId: number) => {
-    try {
-      const products = await productsApi.listForSupplier(supplierId);
-      // TODO: Navigate to products screen
-      Alert.alert('Products', `Found ${products.length} products`);
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to load products');
-    }
-  };
-
-  const renderLinkItem = ({ item }: { item: LinkOut }) => {
-    const statusColor = getStatusColor(item.status);
-    const statusText = getStatusText(item.status);
+  const renderLinkItem = (item: LinkOut) => {
+    const supplier = suppliers.get(item.supplier_id);
     const isAccepted = item.status === LinkStatus.ACCEPTED;
 
     return (
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
+      <Card key={item.id} style={styles.linkCard}>
+        <View style={styles.linkHeader}>
           <View style={styles.supplierInfo}>
-            <Text style={styles.supplierName}>Supplier ID: {item.supplier_id}</Text>
-            <Text style={styles.linkId}>Link #{item.id}</Text>
+            <View style={styles.supplierTitleRow}>
+              <Ionicons
+                name="business"
+                size={20}
+                color={colors.foreground.primary}
+                style={styles.supplierIcon}
+              />
+              <Text style={styles.supplierName}>
+                {supplier?.name || `Supplier #${item.supplier_id}`}
+              </Text>
+            </View>
+            {supplier?.description && (
+              <Text style={styles.supplierDescription} numberOfLines={2}>
+                {supplier.description}
+              </Text>
+            )}
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{statusText}</Text>
-          </View>
+          <Badge variant={getBadgeVariant(item.status)}>{getStatusText(item.status)}</Badge>
         </View>
 
         {isAccepted && (
-          <View style={styles.cardActions}>
-            <TouchableOpacity
-              style={styles.buttonSecondary}
+          <View style={styles.linkActions}>
+            <Button
+              variant="outline"
+              size="sm"
               onPress={() => handleViewProducts(item.supplier_id)}
+              style={styles.actionButton}
             >
-              <Text style={styles.buttonTextSecondary}>View Products</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.buttonPrimary}
-              onPress={() => {
-                // TODO: Navigate to chat
-                Alert.alert('Chat', 'Chat feature coming soon');
-              }}
+              View Products
+            </Button>
+            <Button
+              size="sm"
+              onPress={() => handleChat(item.supplier_id)}
+              style={styles.actionButton}
             >
-              <Text style={styles.buttonTextPrimary}>Chat</Text>
-            </TouchableOpacity>
+              Chat
+            </Button>
           </View>
         )}
 
         {item.status === LinkStatus.PENDING && (
-          <Text style={styles.pendingText}>Waiting for supplier to accept...</Text>
+          <View style={styles.pendingContainer}>
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={colors.foreground.secondary}
+              style={styles.pendingIcon}
+            />
+            <Text style={styles.pendingText}>Waiting for supplier to accept...</Text>
+          </View>
         )}
-      </View>
+      </Card>
     );
   };
 
@@ -130,130 +156,155 @@ export default function MyLinksScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {links.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No connections yet</Text>
-          <Text style={styles.emptySubtext}>
-            Go to Suppliers tab to request connections
-          </Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        <View style={styles.contentWrapper}>
+          <View style={styles.header}>
+            <Ionicons
+              name="link"
+              size={48}
+              color={colors.foreground.primary}
+              style={styles.headerIcon}
+            />
+            <Text style={styles.headerTitle}>My Connections</Text>
+            <Text style={styles.headerSubtitle}>
+              Manage your supplier connections and access their products
+            </Text>
+          </View>
+
+          {links.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="link-outline"
+                size={64}
+                color={colors.foreground.tertiary}
+                style={styles.emptyIcon}
+              />
+              <Text style={styles.emptyText}>No connections yet</Text>
+              <Text style={styles.emptySubtext}>
+                Go to Suppliers tab to request connections with suppliers
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.linksList}>{links.map((link) => renderLinkItem(link))}</View>
+          )}
         </View>
-      ) : (
-        <FlatList
-          data={links}
-          renderItem={renderLinkItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={loadLinks} />
-          }
-        />
-      )}
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.secondary,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    padding: 16,
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+    paddingVertical: spacing['4xl'],
   },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  contentWrapper: {
+    width: '100%',
+    maxWidth: 800,
   },
-  cardHeader: {
+  header: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  headerIcon: {
+    marginBottom: spacing.md,
+  },
+  headerTitle: {
+    ...typography.h2,
+    marginBottom: spacing.xs,
+  },
+  headerSubtitle: {
+    ...typography.body,
+    color: colors.foreground.secondary,
+    textAlign: 'center',
+  },
+  linksList: {
+    gap: spacing.md,
+  },
+  linkCard: {
+    marginBottom: spacing.md,
+  },
+  linkHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   supplierInfo: {
     flex: 1,
   },
-  supplierName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  linkId: {
-    fontSize: 12,
-    color: '#999',
-  },
-  statusBadge: {
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  cardActions: {
+  supplierTitleRow: {
     flexDirection: 'row',
-    gap: 8,
-  },
-  buttonPrimary: {
-    flex: 1,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    paddingVertical: 10,
     alignItems: 'center',
+    marginBottom: spacing.xs,
   },
-  buttonTextPrimary: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+  supplierIcon: {
+    marginRight: spacing.xs,
   },
-  buttonSecondary: {
+  supplierName: {
+    ...typography.h4,
     flex: 1,
-    backgroundColor: '#E5E5E5',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
   },
-  buttonTextSecondary: {
-    color: '#333',
-    fontSize: 14,
-    fontWeight: '600',
+  supplierDescription: {
+    ...typography.body,
+    color: colors.foreground.secondary,
+    marginTop: spacing.xs,
+  },
+  linkActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  pendingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.primary,
+    marginTop: spacing.sm,
+  },
+  pendingIcon: {
+    marginRight: spacing.xs,
   },
   pendingText: {
-    fontSize: 14,
-    color: '#666',
+    ...typography.caption,
+    color: colors.foreground.secondary,
     fontStyle: 'italic',
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: spacing['4xl'],
+    minHeight: 400,
+  },
+  emptyIcon: {
+    marginBottom: spacing.lg,
   },
   emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#666',
-    marginBottom: 8,
+    ...typography.h3,
+    color: colors.foreground.secondary,
+    marginBottom: spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
-    color: '#999',
+    ...typography.body,
+    color: colors.foreground.tertiary,
     textAlign: 'center',
   },
 });
