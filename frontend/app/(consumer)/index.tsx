@@ -17,8 +17,10 @@ import { SupplierOut, LinkOut } from '@/types';
 import { LinkStatus } from '@/enums';
 import { Card, Button, Badge } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ConsumerHomeScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const [suppliers, setSuppliers] = useState<SupplierOut[]>([]);
@@ -40,7 +42,7 @@ export default function ConsumerHomeScreen() {
       setSuppliers(allSuppliers);
     } catch (error: any) {
       console.error('Failed to load data:', error);
-      Alert.alert('Error', 'Failed to load suppliers');
+      Alert.alert(t('app.error'), t('suppliers.loadError'));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -50,10 +52,10 @@ export default function ConsumerHomeScreen() {
   const handleRequestLink = async (supplierId: number) => {
     try {
       await linksApi.requestLink(supplierId);
-      Alert.alert('Success', 'Link request sent!');
+      Alert.alert(t('app.success'), t('suppliers.linkRequestSent'));
       loadData();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to send link request');
+      Alert.alert(t('app.error'), error.response?.data?.detail || t('suppliers.linkRequestError'));
     }
   };
 
@@ -79,12 +81,12 @@ export default function ConsumerHomeScreen() {
         <View style={styles.supplierActions}>
           {!linkStatus && (
             <Button size="sm" onPress={() => handleRequestLink(item.id)}>
-              Request Link
+              {t('suppliers.requestLink')}
             </Button>
           )}
 
           {linkStatus === LinkStatus.PENDING && (
-            <Badge variant="pending">Pending</Badge>
+            <Badge variant="pending">{t('suppliers.linkStatus.pending')}</Badge>
           )}
 
           {linkStatus === LinkStatus.ACCEPTED && (
@@ -94,14 +96,14 @@ export default function ConsumerHomeScreen() {
                 onPress={() => router.push(`/(consumer)/catalog/${item.id}` as any)}
                 style={styles.viewButton}
               >
-                View Products
+                {t('suppliers.viewCatalog')}
               </Button>
-              <Badge variant="accepted">Connected</Badge>
+              <Badge variant="accepted">{t('suppliers.linkStatus.accepted')}</Badge>
             </View>
           )}
 
           {linkStatus === LinkStatus.BLOCKED && (
-            <Badge variant="rejected">Blocked</Badge>
+            <Badge variant="rejected">{t('suppliers.linkStatus.blocked')}</Badge>
           )}
         </View>
       </Card>
@@ -125,17 +127,17 @@ export default function ConsumerHomeScreen() {
       <View style={styles.content}>
         <View style={styles.contentWrapper}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Find Suppliers</Text>
+            <Text style={styles.headerTitle}>{t('suppliers.discover')}</Text>
             <Text style={styles.headerSubtitle}>
-              Connect with suppliers to view their products
+              {t('suppliers.subtitle')}
             </Text>
           </View>
 
           {suppliers.length === 0 ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyText}>No suppliers available yet</Text>
+              <Text style={styles.emptyText}>{t('suppliers.noSuppliers')}</Text>
               <Text style={styles.emptySubtext}>
-                Check back later or contact support to add suppliers
+                {t('suppliers.noSuppliersSubtext')}
               </Text>
             </View>
           ) : (

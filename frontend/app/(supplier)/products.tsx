@@ -14,8 +14,10 @@ import {
 } from 'react-native';
 import { productsApi } from '@/api';
 import { ProductOut, ProductCreate, ProductUpdate } from '@/types';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ProductsScreen() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ProductOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -39,7 +41,7 @@ export default function ProductsScreen() {
       setProducts(data);
     } catch (error: any) {
       console.error('Failed to load products:', error);
-      Alert.alert('Error', 'Failed to load products');
+      Alert.alert(t('app.error'), t('products.loadError'));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -70,7 +72,7 @@ export default function ProductsScreen() {
 
   const handleSaveProduct = async () => {
     if (!name.trim() || !unit.trim() || !price.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert(t('app.error'), t('products.fillRequired'));
       return;
     }
 
@@ -85,7 +87,7 @@ export default function ProductsScreen() {
           is_active: isActive,
         };
         await productsApi.update(editingProduct.id, updateData);
-        Alert.alert('Success', 'Product updated');
+        Alert.alert(t('app.success'), t('products.productUpdated'));
       } else {
         const createData: ProductCreate = {
           name: name.trim(),
@@ -95,28 +97,28 @@ export default function ProductsScreen() {
           moq: parseInt(moq) || 1,
         };
         await productsApi.create(createData);
-        Alert.alert('Success', 'Product created');
+        Alert.alert(t('app.success'), t('products.productCreated'));
       }
       setIsModalVisible(false);
       loadProducts();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to save product');
+      Alert.alert(t('app.error'), error.response?.data?.detail || t('products.saveError'));
     }
   };
 
   const handleDeleteProduct = (productId: number) => {
-    Alert.alert('Delete Product', 'Are you sure you want to delete this product?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('products.deleteProduct'), t('products.deleteConfirm'), [
+      { text: t('app.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('app.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await productsApi.delete(productId);
-            Alert.alert('Success', 'Product deleted');
+            Alert.alert(t('app.success'), t('products.productDeleted'));
             loadProducts();
           } catch (error: any) {
-            Alert.alert('Error', 'Failed to delete product');
+            Alert.alert(t('app.error'), t('products.deleteError'));
           }
         },
       },
@@ -133,12 +135,12 @@ export default function ProductsScreen() {
           <View style={styles.productInfo}>
             <Text style={styles.productName}>{item.name}</Text>
             <Text style={styles.productPrice}>${item.price} / {item.unit}</Text>
-            <Text style={styles.productSubtext}>Stock: {item.stock} • MOQ: {item.moq} {item.unit}</Text>
+            <Text style={styles.productSubtext}>{t('products.stock')}: {item.stock} • {t('products.moq')}: {item.moq} {item.unit}</Text>
           </View>
         </View>
         <View style={[styles.statusPill, item.is_active ? styles.activePill : styles.inactivePill]}>
           <Text style={item.is_active ? styles.statusActiveText : styles.statusInactiveText}>
-            {item.is_active ? 'Active' : 'Inactive'}
+            {item.is_active ? t('products.active') : t('products.inactive')}
           </Text>
         </View>
       </View>
@@ -148,13 +150,13 @@ export default function ProductsScreen() {
           style={styles.buttonEdit}
           onPress={() => openEditModal(item)}
         >
-          <Text style={styles.buttonEditText}>Edit</Text>
+          <Text style={styles.buttonEditText}>{t('app.edit')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.buttonDelete}
           onPress={() => handleDeleteProduct(item.id)}
         >
-          <Text style={styles.buttonDeleteText}>Delete</Text>
+          <Text style={styles.buttonDeleteText}>{t('app.delete')}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -172,18 +174,18 @@ export default function ProductsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Products</Text>
-          <Text style={styles.headerSubtitle}>Manage items in your catalog</Text>
+          <Text style={styles.headerTitle}>{t('navigation.products')}</Text>
+          <Text style={styles.headerSubtitle}>{t('products.subtitle')}</Text>
         </View>
         <TouchableOpacity style={styles.addButton} onPress={openCreateModal}>
-          <Text style={styles.addButtonText}>Add</Text>
+          <Text style={styles.addButtonText}>{t('products.add')}</Text>
         </TouchableOpacity>
       </View>
 
       {products.length === 0 ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No products yet</Text>
-          <Text style={styles.emptySubtext}>Add products to your catalog</Text>
+          <Text style={styles.emptyText}>{t('products.noProducts')}</Text>
+          <Text style={styles.emptySubtext}>{t('products.noProductsSubtext')}</Text>
         </View>
       ) : (
         <FlatList
@@ -206,26 +208,26 @@ export default function ProductsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {editingProduct ? 'Edit Product' : 'Add Product'}
+              {editingProduct ? t('products.editProduct') : t('products.addProduct')}
             </Text>
 
-            <Text style={styles.label}>Name *</Text>
+            <Text style={styles.label}>{t('products.name')} *</Text>
             <TextInput
               style={styles.input}
-              placeholder="Product name"
+              placeholder={t('products.namePlaceholder')}
               value={name}
               onChangeText={setName}
             />
 
-            <Text style={styles.label}>Unit *</Text>
+            <Text style={styles.label}>{t('products.unit')} *</Text>
             <TextInput
               style={styles.input}
-              placeholder="kg, liter, pack, etc."
+              placeholder={t('products.unitPlaceholder')}
               value={unit}
               onChangeText={setUnit}
             />
 
-            <Text style={styles.label}>Price *</Text>
+            <Text style={styles.label}>{t('products.price')} *</Text>
             <TextInput
               style={styles.input}
               placeholder="0.00"
@@ -234,7 +236,7 @@ export default function ProductsScreen() {
               keyboardType="decimal-pad"
             />
 
-            <Text style={styles.label}>Stock</Text>
+            <Text style={styles.label}>{t('products.stock')}</Text>
             <TextInput
               style={styles.input}
               placeholder="0"
@@ -243,7 +245,7 @@ export default function ProductsScreen() {
               keyboardType="number-pad"
             />
 
-            <Text style={styles.label}>Minimum Order Quantity (MOQ)</Text>
+            <Text style={styles.label}>{t('products.moqFull')}</Text>
             <TextInput
               style={styles.input}
               placeholder="1"
@@ -254,7 +256,7 @@ export default function ProductsScreen() {
 
             {editingProduct && (
               <View style={styles.switchRow}>
-                <Text style={styles.label}>Active</Text>
+                <Text style={styles.label}>{t('products.active')}</Text>
                 <Switch value={isActive} onValueChange={setIsActive} />
               </View>
             )}
@@ -264,10 +266,10 @@ export default function ProductsScreen() {
                 style={styles.buttonSecondary}
                 onPress={() => setIsModalVisible(false)}
               >
-                <Text style={styles.buttonTextSecondary}>Cancel</Text>
+                <Text style={styles.buttonTextSecondary}>{t('app.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonPrimary} onPress={handleSaveProduct}>
-                <Text style={styles.buttonTextPrimary}>Save</Text>
+                <Text style={styles.buttonTextPrimary}>{t('app.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>

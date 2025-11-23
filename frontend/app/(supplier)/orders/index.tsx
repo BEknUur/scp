@@ -14,8 +14,10 @@ import { Order, OrderStatus } from '@/types';
 import { Card, Badge, Button } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function SupplierOrdersScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +33,7 @@ export default function SupplierOrdersScreen() {
       setOrders(data);
     } catch (error: any) {
       console.error('Failed to load orders:', error);
-      Alert.alert('Error', 'Failed to load orders');
+      Alert.alert(t('app.error'), t('orders.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -56,15 +58,15 @@ export default function SupplierOrdersScreen() {
   const getStatusText = (status: OrderStatus) => {
     switch (status) {
       case OrderStatus.CREATED:
-        return 'Pending';
+        return t('orders.status.created');
       case OrderStatus.ACCEPTED:
-        return 'Accepted';
+        return t('orders.status.accepted');
       case OrderStatus.COMPLETED:
-        return 'Completed';
+        return t('orders.status.completed');
       case OrderStatus.CANCELLED:
-        return 'Cancelled';
+        return t('orders.status.cancelled');
       case OrderStatus.REJECTED:
-        return 'Rejected';
+        return t('orders.status.rejected');
       default:
         return status;
     }
@@ -88,7 +90,7 @@ export default function SupplierOrdersScreen() {
                   color={colors.foreground.primary}
                   style={styles.orderIcon}
                 />
-                <Text style={styles.orderTitle}>Order #{item.id}</Text>
+                <Text style={styles.orderTitle}>{t('orders.orderNumber', { number: item.id })}</Text>
               </View>
               {item.consumer && (
                 <View style={styles.consumerRow}>
@@ -111,7 +113,7 @@ export default function SupplierOrdersScreen() {
             <View style={styles.metaItem}>
               <Ionicons name="cube" size={14} color={colors.foreground.tertiary} style={styles.metaIcon} />
               <Text style={styles.metaText}>
-                {item.items.length} item{item.items.length > 1 ? 's' : ''}
+                {t('orders.itemCount', { count: item.items.length })}
               </Text>
             </View>
             <View style={styles.metaItem}>
@@ -123,11 +125,11 @@ export default function SupplierOrdersScreen() {
           </View>
 
           <View style={styles.orderFooter}>
-            <Text style={styles.totalLabel}>Total Amount:</Text>
+            <Text style={styles.totalLabel}>{t('orders.totalAmount')}</Text>
             <View style={styles.footerRight}>
               <Text style={styles.totalPrice}>${item.total_amount.toFixed(2)}</Text>
               {needsAction && (
-                <Badge variant="pending" style={styles.actionBadge}>Action Required</Badge>
+                <Badge variant="pending" style={styles.actionBadge}>{t('supplierOrders.actionRequired')}</Badge>
               )}
             </View>
           </View>
@@ -155,9 +157,9 @@ export default function SupplierOrdersScreen() {
               color={colors.foreground.primary}
               style={styles.headerIcon}
             />
-            <Text style={styles.headerTitle}>Customer Orders</Text>
+            <Text style={styles.headerTitle}>{t('supplierOrders.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Manage and fulfill customer orders
+              {t('supplierOrders.subtitle')}
             </Text>
           </View>
 
@@ -170,7 +172,7 @@ export default function SupplierOrdersScreen() {
                   onPress={() => setFilterStatus(null)}
                   style={styles.filterButton}
                 >
-                  All
+                  {t('orders.filter.all')}
                 </Button>
                 <Button
                   variant={filterStatus === OrderStatus.CREATED ? 'primary' : 'ghost'}
@@ -178,7 +180,7 @@ export default function SupplierOrdersScreen() {
                   onPress={() => setFilterStatus(OrderStatus.CREATED)}
                   style={styles.filterButton}
                 >
-                  Pending
+                  {t('orders.filter.pending')}
                 </Button>
                 <Button
                   variant={filterStatus === OrderStatus.ACCEPTED ? 'primary' : 'ghost'}
@@ -186,7 +188,7 @@ export default function SupplierOrdersScreen() {
                   onPress={() => setFilterStatus(OrderStatus.ACCEPTED)}
                   style={styles.filterButton}
                 >
-                  Accepted
+                  {t('orders.filter.accepted')}
                 </Button>
                 <Button
                   variant={filterStatus === OrderStatus.COMPLETED ? 'primary' : 'ghost'}
@@ -194,7 +196,7 @@ export default function SupplierOrdersScreen() {
                   onPress={() => setFilterStatus(OrderStatus.COMPLETED)}
                   style={styles.filterButton}
                 >
-                  Completed
+                  {t('orders.filter.completed')}
                 </Button>
               </View>
             </ScrollView>
@@ -208,11 +210,11 @@ export default function SupplierOrdersScreen() {
                 color={colors.foreground.tertiary}
                 style={styles.emptyIcon}
               />
-              <Text style={styles.emptyText}>No orders found</Text>
+              <Text style={styles.emptyText}>{t('orders.noOrders')}</Text>
               <Text style={styles.emptySubtext}>
                 {filterStatus
-                  ? `No ${getStatusText(filterStatus).toLowerCase()} orders`
-                  : 'Orders from consumers will appear here'}
+                  ? t('orders.noFilteredOrders', { status: getStatusText(filterStatus).toLowerCase() })
+                  : t('supplierOrders.noOrdersSubtext')}
               </Text>
             </View>
           ) : (

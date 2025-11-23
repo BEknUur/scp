@@ -14,8 +14,10 @@ import { SupplierOut } from '@/types';
 import { Card } from '@/components/ui';
 import { colors, typography, spacing, radius } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function SupplierDashboardScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [supplier, setSupplier] = useState<SupplierOut | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,9 +33,9 @@ export default function SupplierDashboardScreen() {
     } catch (error: any) {
       if (error.response?.status === 404) {
         Alert.alert(
-          'Company Not Found',
-          'You need to create your company profile first.',
-          [{ text: 'OK' }]
+          t('dashboard.companyNotFound'),
+          t('dashboard.createProfileMessage'),
+          [{ text: t('app.confirm') }]
         );
       }
     } finally {
@@ -57,24 +59,24 @@ export default function SupplierDashboardScreen() {
           <View style={styles.avatar}>
             <Ionicons name="business" size={32} color={colors.background.primary} />
           </View>
-          <Text style={styles.headerTitle}>Supplier Dashboard</Text>
+          <Text style={styles.headerTitle}>{t('dashboard.title')}</Text>
           <Text style={styles.headerSubtitle}>{user?.email}</Text>
         </View>
 
         {/* Company Information Card */}
         {supplier ? (
           <Card style={styles.card}>
-            <Text style={styles.cardTitle}>Company Information</Text>
+            <Text style={styles.cardTitle}>{t('dashboard.companyInformation')}</Text>
 
             <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
-                <Text style={styles.label}>Company Name</Text>
+                <Text style={styles.label}>{t('dashboard.companyName')}</Text>
                 <Text style={styles.value}>{supplier.name}</Text>
               </View>
 
               {supplier.description && (
                 <View style={styles.infoItem}>
-                  <Text style={styles.label}>Description</Text>
+                  <Text style={styles.label}>{t('dashboard.description')}</Text>
                   <Text style={styles.value}>{supplier.description}</Text>
                 </View>
               )}
@@ -88,9 +90,9 @@ export default function SupplierDashboardScreen() {
               color={colors.foreground.tertiary}
               style={styles.emptyIcon}
             />
-            <Text style={styles.emptyText}>No Company Found</Text>
+            <Text style={styles.emptyText}>{t('dashboard.noCompanyFound')}</Text>
             <Text style={styles.emptySubtext}>
-              Create your company profile to get started with managing your supplier account
+              {t('dashboard.createProfileSubtext')}
             </Text>
           </View>
         )}

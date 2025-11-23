@@ -15,8 +15,10 @@ import { ComplaintStatus } from '@/enums';
 import { Card, Button, Badge } from '@/components/ui';
 import { colors, typography, spacing, radius } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ComplaintsScreen() {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<ComplaintOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComplaint, setSelectedComplaint] = useState<ComplaintOut | null>(null);
@@ -32,7 +34,7 @@ export default function ComplaintsScreen() {
       setComplaints(data);
     } catch (error: any) {
       console.error('Failed to load complaints:', error);
-      Alert.alert('Error', 'Failed to load complaints');
+      Alert.alert(t('app.error'), t('supplierComplaints.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -41,12 +43,12 @@ export default function ComplaintsScreen() {
   const handleStatusChange = async (complaintId: number, newStatus: ComplaintStatus) => {
     try {
       await complaintsApi.updateStatus(complaintId, { status: newStatus });
-      Alert.alert('Success', 'Status updated');
+      Alert.alert(t('app.success'), t('supplierComplaints.statusUpdated'));
       setIsModalVisible(false);
       setSelectedComplaint(null);
       loadComplaints();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to update status');
+      Alert.alert(t('app.error'), error.response?.data?.detail || t('supplierComplaints.statusUpdateError'));
     }
   };
 
@@ -66,11 +68,11 @@ export default function ComplaintsScreen() {
   const getStatusText = (status: ComplaintStatus) => {
     switch (status) {
       case ComplaintStatus.OPEN:
-        return 'Open';
+        return t('complaints.status.open');
       case ComplaintStatus.IN_PROGRESS:
-        return 'In Progress';
+        return t('complaints.status.inProgress');
       case ComplaintStatus.RESOLVED:
-        return 'Resolved';
+        return t('complaints.status.resolved');
       default:
         return status;
     }
@@ -95,7 +97,7 @@ export default function ComplaintsScreen() {
                   color={colors.foreground.primary}
                   style={styles.complaintIcon}
                 />
-                <Text style={styles.complaintTitle}>Complaint #{item.id}</Text>
+                <Text style={styles.complaintTitle}>{t('complaints.complaintNumber', { number: item.id })}</Text>
               </View>
               {item.link_id && (
                 <View style={styles.linkInfoRow}>
@@ -105,7 +107,7 @@ export default function ComplaintsScreen() {
                     color={colors.foreground.secondary}
                     style={styles.linkIcon}
                   />
-                  <Text style={styles.linkInfo}>Link #{item.link_id}</Text>
+                  <Text style={styles.linkInfo}>{t('complaints.linkNumber', { number: item.link_id })}</Text>
                 </View>
               )}
             </View>
@@ -113,7 +115,7 @@ export default function ComplaintsScreen() {
           </View>
 
           <View style={styles.descriptionSection}>
-            <Text style={styles.descriptionLabel}>Description</Text>
+            <Text style={styles.descriptionLabel}>{t('complaints.description')}</Text>
             <Text style={styles.descriptionText} numberOfLines={2}>
               {item.description}
             </Text>
@@ -127,7 +129,7 @@ export default function ComplaintsScreen() {
               style={styles.dateIcon}
             />
             <Text style={styles.dateText}>
-              Created: {new Date(item.created_at).toLocaleDateString()}
+              {t('complaints.created')}: {new Date(item.created_at).toLocaleDateString()}
             </Text>
           </View>
         </Card>
@@ -154,9 +156,9 @@ export default function ComplaintsScreen() {
               color={colors.foreground.primary}
               style={styles.headerIcon}
             />
-            <Text style={styles.headerTitle}>Customer Complaints</Text>
+            <Text style={styles.headerTitle}>{t('supplierComplaints.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Review and manage customer complaints
+              {t('supplierComplaints.subtitle')}
             </Text>
           </View>
 
@@ -168,9 +170,9 @@ export default function ComplaintsScreen() {
                 color={colors.foreground.tertiary}
                 style={styles.emptyIcon}
               />
-              <Text style={styles.emptyText}>No complaints yet</Text>
+              <Text style={styles.emptyText}>{t('supplierComplaints.noComplaints')}</Text>
               <Text style={styles.emptySubtext}>
-                Customer complaints will appear here
+                {t('supplierComplaints.noComplaintsSubtext')}
               </Text>
             </View>
           ) : (
@@ -191,7 +193,7 @@ export default function ComplaintsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Complaint #{selectedComplaint?.id}</Text>
+              <Text style={styles.modalTitle}>{t('complaints.complaintNumber', { number: selectedComplaint?.id || 0 })}</Text>
               <TouchableOpacity
                 onPress={() => {
                   setIsModalVisible(false);
@@ -211,7 +213,7 @@ export default function ComplaintsScreen() {
                   color={colors.foreground.primary}
                   style={styles.sectionIcon}
                 />
-                <Text style={styles.sectionLabel}>Description</Text>
+                <Text style={styles.sectionLabel}>{t('complaints.description')}</Text>
               </View>
               <Text style={styles.descriptionFullText}>{selectedComplaint?.description}</Text>
             </View>
@@ -224,7 +226,7 @@ export default function ComplaintsScreen() {
                   color={colors.foreground.primary}
                   style={styles.sectionIcon}
                 />
-                <Text style={styles.sectionLabel}>Current Status</Text>
+                <Text style={styles.sectionLabel}>{t('supplierComplaints.currentStatus')}</Text>
               </View>
               <Badge variant={getBadgeVariant(selectedComplaint?.status || ComplaintStatus.OPEN)}>
                 {getStatusText(selectedComplaint?.status || ComplaintStatus.OPEN)}
@@ -239,7 +241,7 @@ export default function ComplaintsScreen() {
                   color={colors.foreground.primary}
                   style={styles.sectionIcon}
                 />
-                <Text style={styles.sectionLabel}>Change Status</Text>
+                <Text style={styles.sectionLabel}>{t('supplierComplaints.changeStatus')}</Text>
               </View>
               <View style={styles.statusButtons}>
                 <Button
@@ -251,7 +253,7 @@ export default function ComplaintsScreen() {
                   }
                   style={styles.statusButton}
                 >
-                  Open
+                  {t('complaints.status.open')}
                 </Button>
 
                 <Button
@@ -263,7 +265,7 @@ export default function ComplaintsScreen() {
                   }
                   style={styles.statusButton}
                 >
-                  In Progress
+                  {t('complaints.status.inProgress')}
                 </Button>
 
                 <Button
@@ -275,7 +277,7 @@ export default function ComplaintsScreen() {
                   }
                   style={styles.statusButton}
                 >
-                  Resolved
+                  {t('complaints.status.resolved')}
                 </Button>
               </View>
             </View>
@@ -288,7 +290,7 @@ export default function ComplaintsScreen() {
               }}
               style={styles.closeButton}
             >
-              Close
+              {t('supplierComplaints.close')}
             </Button>
           </View>
         </View>

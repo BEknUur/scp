@@ -82,12 +82,42 @@ export function LanguageSwitcher({ showLabel = true, compact = false }: Language
 
   if (compact) {
     return (
-      <TouchableOpacity
-        style={styles.compactButton}
-        onPress={() => setIsModalVisible(true)}
-      >
-        <Text style={styles.compactFlag}>{currentLang.flag}</Text>
-      </TouchableOpacity>
+      <>
+        <TouchableOpacity
+          style={styles.compactButton}
+          onPress={() => setIsModalVisible(true)}
+        >
+          <Text style={styles.compactFlag}>{currentLang.flag}</Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={isModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setIsModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('language.changeLanguage')}</Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setIsModalVisible(false)}
+                >
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <FlatList
+                data={LANGUAGES}
+                renderItem={renderLanguageItem}
+                keyExtractor={(item) => item.code}
+                style={styles.languageList}
+              />
+            </View>
+          </View>
+        </Modal>
+      </>
     );
   }
 
@@ -217,7 +247,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   selectedLanguageItem: {
-    backgroundColor: colors.primary.light + '20',
+    backgroundColor: colors.primary.default + '10',
   },
   languageInfo: {
     flex: 1,
@@ -227,18 +257,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedLanguageName: {
-    color: colors.primary.main,
+    color: colors.primary.default,
   },
   languageCode: {
     ...typography.caption,
     color: colors.foreground.secondary,
   },
   selectedLanguageCode: {
-    color: colors.primary.main,
+    color: colors.primary.default,
   },
   checkmark: {
     ...typography.body,
-    color: colors.primary.main,
+    color: colors.primary.default,
     fontWeight: 'bold',
   },
 });

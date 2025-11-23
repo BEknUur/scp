@@ -14,8 +14,10 @@ import { LinkStatus } from '@/enums';
 import { Card, Button, Badge } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function LinksScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [links, setLinks] = useState<LinkOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,8 +32,8 @@ export default function LinksScreen() {
       setLinks(data);
     } catch (error: any) {
       console.error('Failed to load links:', error);
-      Alert.alert('Error', 'Failed to load link requests');
-    } finally {
+      Alert.alert(t('app.error'), t('supplierLinks.loadError'));
+    } finally{
       setIsLoading(false);
     }
   };
@@ -39,26 +41,26 @@ export default function LinksScreen() {
   const handleAccept = async (linkId: number) => {
     try {
       await linksApi.acceptLink(linkId);
-      Alert.alert('Success', 'Link request accepted');
+      Alert.alert(t('app.success'), t('supplierLinks.accepted'));
       loadLinks();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to accept link');
+      Alert.alert(t('app.error'), error.response?.data?.detail || t('supplierLinks.acceptError'));
     }
   };
 
   const handleBlock = async (linkId: number) => {
-    Alert.alert('Block Link', 'Are you sure you want to block this connection?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('supplierLinks.blockTitle'), t('supplierLinks.blockConfirm'), [
+      { text: t('app.cancel'), style: 'cancel' },
       {
-        text: 'Block',
+        text: t('supplierLinks.block'),
         style: 'destructive',
         onPress: async () => {
           try {
             await linksApi.blockLink(linkId);
-            Alert.alert('Success', 'Link blocked');
+            Alert.alert(t('app.success'), t('supplierLinks.blocked'));
             loadLinks();
           } catch (error: any) {
-            Alert.alert('Error', 'Failed to block link');
+            Alert.alert(t('app.error'), t('supplierLinks.blockError'));
           }
         },
       },
@@ -66,18 +68,18 @@ export default function LinksScreen() {
   };
 
   const handleRemove = async (linkId: number) => {
-    Alert.alert('Remove Link', 'Are you sure you want to remove this connection?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('supplierLinks.removeTitle'), t('supplierLinks.removeConfirm'), [
+      { text: t('app.cancel'), style: 'cancel' },
       {
-        text: 'Remove',
+        text: t('supplierLinks.remove'),
         style: 'destructive',
         onPress: async () => {
           try {
             await linksApi.removeLink(linkId);
-            Alert.alert('Success', 'Link removed');
+            Alert.alert(t('app.success'), t('supplierLinks.removed'));
             loadLinks();
           } catch (error: any) {
-            Alert.alert('Error', 'Failed to remove link');
+            Alert.alert(t('app.error'), t('supplierLinks.removeError'));
           }
         },
       },
@@ -105,13 +107,13 @@ export default function LinksScreen() {
   const getStatusText = (status: LinkStatus) => {
     switch (status) {
       case LinkStatus.ACCEPTED:
-        return 'Connected';
+        return t('links.connected');
       case LinkStatus.PENDING:
-        return 'Pending';
+        return t('links.pending');
       case LinkStatus.BLOCKED:
-        return 'Blocked';
+        return t('links.blocked');
       case LinkStatus.REMOVED:
-        return 'Removed';
+        return t('links.removed');
       default:
         return status;
     }
@@ -132,9 +134,9 @@ export default function LinksScreen() {
                 color={colors.foreground.primary}
                 style={styles.consumerIcon}
               />
-              <Text style={styles.consumerName}>Consumer #{item.consumer_id}</Text>
+              <Text style={styles.consumerName}>{t('supplierLinks.consumer', { number: item.consumer_id })}</Text>
             </View>
-            <Text style={styles.linkId}>Link ID: {item.id}</Text>
+            <Text style={styles.linkId}>{t('supplierLinks.linkId', { id: item.id })}</Text>
           </View>
           <Badge variant={getBadgeVariant(item.status)}>{getStatusText(item.status)}</Badge>
         </View>
@@ -147,7 +149,7 @@ export default function LinksScreen() {
               onPress={() => handleAccept(item.id)}
               style={styles.actionButton}
             >
-              Accept
+              {t('supplierLinks.accept')}
             </Button>
             <Button
               variant="outline"
@@ -155,7 +157,7 @@ export default function LinksScreen() {
               onPress={() => handleBlock(item.id)}
               style={styles.actionButton}
             >
-              Block
+              {t('supplierLinks.block')}
             </Button>
           </View>
         )}
@@ -167,7 +169,7 @@ export default function LinksScreen() {
               onPress={() => handleChat(item.consumer_id)}
               style={styles.actionButton}
             >
-              Chat
+              {t('links.chat')}
             </Button>
             <Button
               variant="outline"
@@ -175,7 +177,7 @@ export default function LinksScreen() {
               onPress={() => handleRemove(item.id)}
               style={styles.actionButton}
             >
-              Remove
+              {t('supplierLinks.remove')}
             </Button>
           </View>
         )}
@@ -202,9 +204,9 @@ export default function LinksScreen() {
               color={colors.foreground.primary}
               style={styles.headerIcon}
             />
-            <Text style={styles.headerTitle}>Connection Requests</Text>
+            <Text style={styles.headerTitle}>{t('supplierLinks.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Manage consumer connections and chat requests
+              {t('supplierLinks.subtitle')}
             </Text>
           </View>
 
@@ -216,9 +218,9 @@ export default function LinksScreen() {
                 color={colors.foreground.tertiary}
                 style={styles.emptyIcon}
               />
-              <Text style={styles.emptyText}>No link requests yet</Text>
+              <Text style={styles.emptyText}>{t('supplierLinks.noLinks')}</Text>
               <Text style={styles.emptySubtext}>
-                Consumers will send connection requests to view your products
+                {t('supplierLinks.noLinksSubtext')}
               </Text>
             </View>
           ) : (

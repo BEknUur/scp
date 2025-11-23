@@ -14,8 +14,10 @@ import { LinkStatus } from '@/enums';
 import { Card, Button, Badge } from '@/components/ui';
 import { colors, typography, spacing } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function MyLinksScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [links, setLinks] = useState<LinkOut[]>([]);
   const [suppliers, setSuppliers] = useState<Map<number, SupplierOut>>(new Map());
@@ -41,7 +43,7 @@ export default function MyLinksScreen() {
       setSuppliers(suppliersMap);
     } catch (error: any) {
       console.error('Failed to load links:', error);
-      Alert.alert('Error', 'Failed to load connections');
+      Alert.alert(t('app.error'), t('links.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -72,13 +74,13 @@ export default function MyLinksScreen() {
   const getStatusText = (status: LinkStatus) => {
     switch (status) {
       case LinkStatus.ACCEPTED:
-        return 'Connected';
+        return t('links.connected');
       case LinkStatus.PENDING:
-        return 'Pending';
+        return t('links.pending');
       case LinkStatus.BLOCKED:
-        return 'Blocked';
+        return t('links.blocked');
       case LinkStatus.REMOVED:
-        return 'Removed';
+        return t('links.removed');
       default:
         return status;
     }
@@ -120,14 +122,14 @@ export default function MyLinksScreen() {
               onPress={() => handleViewProducts(item.supplier_id)}
               style={styles.actionButton}
             >
-              View Products
+              {t('links.viewProducts')}
             </Button>
             <Button
               size="sm"
               onPress={() => handleChat(item.supplier_id)}
               style={styles.actionButton}
             >
-              Chat
+              {t('links.chat')}
             </Button>
           </View>
         )}
@@ -140,7 +142,7 @@ export default function MyLinksScreen() {
               color={colors.foreground.secondary}
               style={styles.pendingIcon}
             />
-            <Text style={styles.pendingText}>Waiting for supplier to accept...</Text>
+            <Text style={styles.pendingText}>{t('links.waitingForAccept')}</Text>
           </View>
         )}
       </Card>
@@ -166,9 +168,9 @@ export default function MyLinksScreen() {
               color={colors.foreground.primary}
               style={styles.headerIcon}
             />
-            <Text style={styles.headerTitle}>My Connections</Text>
+            <Text style={styles.headerTitle}>{t('links.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Manage your supplier connections and access their products
+              {t('links.subtitle')}
             </Text>
           </View>
 
@@ -180,9 +182,9 @@ export default function MyLinksScreen() {
                 color={colors.foreground.tertiary}
                 style={styles.emptyIcon}
               />
-              <Text style={styles.emptyText}>No connections yet</Text>
+              <Text style={styles.emptyText}>{t('links.noLinks')}</Text>
               <Text style={styles.emptySubtext}>
-                Go to Suppliers tab to request connections with suppliers
+                {t('links.noLinksSubtext')}
               </Text>
             </View>
           ) : (

@@ -16,8 +16,10 @@ import { ComplaintStatus } from '@/enums';
 import { Card, Button, Badge } from '@/components/ui';
 import { colors, typography, spacing, radius } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ComplaintsScreen() {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState<ComplaintOut[]>([]);
   const [links, setLinks] = useState<LinkOut[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +49,7 @@ export default function ComplaintsScreen() {
 
   const handleCreateComplaint = async () => {
     if (!selectedLinkId || !description.trim()) {
-      Alert.alert('Error', 'Please select a connection and enter description');
+      Alert.alert(t('app.error'), t('complaints.selectConnectionError'));
       return;
     }
 
@@ -56,13 +58,13 @@ export default function ComplaintsScreen() {
         link_id: selectedLinkId,
         description: description.trim(),
       });
-      Alert.alert('Success', 'Complaint submitted');
+      Alert.alert(t('app.success'), t('complaints.complaintSubmitted'));
       setIsModalVisible(false);
       setDescription('');
       setSelectedLinkId(null);
       loadData();
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.detail || 'Failed to create complaint');
+      Alert.alert(t('app.error'), error.response?.data?.detail || t('complaints.createError'));
     }
   };
 
@@ -82,11 +84,11 @@ export default function ComplaintsScreen() {
   const getStatusText = (status: ComplaintStatus) => {
     switch (status) {
       case ComplaintStatus.OPEN:
-        return 'Open';
+        return t('complaints.status.open');
       case ComplaintStatus.IN_PROGRESS:
-        return 'In Progress';
+        return t('complaints.status.inProgress');
       case ComplaintStatus.RESOLVED:
-        return 'Resolved';
+        return t('complaints.status.resolved');
       default:
         return status;
     }
@@ -104,7 +106,7 @@ export default function ComplaintsScreen() {
                 color={colors.foreground.primary}
                 style={styles.complaintIcon}
               />
-              <Text style={styles.complaintTitle}>Complaint #{item.id}</Text>
+              <Text style={styles.complaintTitle}>{t('complaints.complaintNumber', { number: item.id })}</Text>
             </View>
             {item.link_id && (
               <View style={styles.linkInfoRow}>
@@ -114,7 +116,7 @@ export default function ComplaintsScreen() {
                   color={colors.foreground.secondary}
                   style={styles.linkIcon}
                 />
-                <Text style={styles.linkInfo}>Link #{item.link_id}</Text>
+                <Text style={styles.linkInfo}>{t('complaints.linkNumber', { number: item.link_id })}</Text>
               </View>
             )}
           </View>
@@ -122,7 +124,7 @@ export default function ComplaintsScreen() {
         </View>
 
         <View style={styles.descriptionSection}>
-          <Text style={styles.descriptionLabel}>Description</Text>
+          <Text style={styles.descriptionLabel}>{t('complaints.description')}</Text>
           <Text style={styles.descriptionText}>{item.description}</Text>
         </View>
 
@@ -134,7 +136,7 @@ export default function ComplaintsScreen() {
             style={styles.dateIcon}
           />
           <Text style={styles.dateText}>
-            Created: {new Date(item.created_at).toLocaleDateString()}
+            {t('complaints.created')}: {new Date(item.created_at).toLocaleDateString()}
           </Text>
         </View>
       </Card>
@@ -160,15 +162,15 @@ export default function ComplaintsScreen() {
               color={colors.foreground.primary}
               style={styles.headerIcon}
             />
-            <Text style={styles.headerTitle}>My Complaints</Text>
+            <Text style={styles.headerTitle}>{t('complaints.title')}</Text>
             <Text style={styles.headerSubtitle}>
-              Track and manage your submitted complaints
+              {t('complaints.subtitle')}
             </Text>
           </View>
 
           <View style={styles.actionSection}>
             <Button onPress={() => setIsModalVisible(true)} style={styles.createButton}>
-              + New Complaint
+              {t('complaints.newComplaint')}
             </Button>
           </View>
 
@@ -180,9 +182,9 @@ export default function ComplaintsScreen() {
                 color={colors.foreground.tertiary}
                 style={styles.emptyIcon}
               />
-              <Text style={styles.emptyText}>No complaints yet</Text>
+              <Text style={styles.emptyText}>{t('complaints.noComplaints')}</Text>
               <Text style={styles.emptySubtext}>
-                Create a complaint if you have an issue with a supplier
+                {t('complaints.noComplaintsSubtext')}
               </Text>
             </View>
           ) : (
@@ -200,7 +202,7 @@ export default function ComplaintsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create Complaint</Text>
+              <Text style={styles.modalTitle}>{t('complaints.create')}</Text>
               <TouchableOpacity
                 onPress={() => {
                   setIsModalVisible(false);
@@ -213,7 +215,7 @@ export default function ComplaintsScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Select Connection</Text>
+            <Text style={styles.label}>{t('complaints.selectConnection')}</Text>
             <ScrollView style={styles.linksContainer} showsVerticalScrollIndicator={false}>
               {links.map((link) => (
                 <TouchableOpacity
@@ -236,17 +238,17 @@ export default function ComplaintsScreen() {
                         selectedLinkId === link.id && styles.linkOptionTextSelected,
                       ]}
                     >
-                      Link #{link.id} - Supplier #{link.supplier_id}
+                      {t('complaints.linkNumber', { number: link.id })} - {t('complaints.supplierNumber', { number: link.supplier_id })}
                     </Text>
                   </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
-            <Text style={styles.label}>Description</Text>
+            <Text style={styles.label}>{t('complaints.description')}</Text>
             <TextInput
               style={styles.textArea}
-              placeholder="Describe your issue in detail..."
+              placeholder={t('complaints.descriptionPlaceholder')}
               placeholderTextColor={colors.foreground.tertiary}
               value={description}
               onChangeText={setDescription}
@@ -265,13 +267,13 @@ export default function ComplaintsScreen() {
                 }}
                 style={styles.modalButton}
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 onPress={handleCreateComplaint}
                 style={styles.modalButton}
               >
-                Submit
+                {t('complaints.submit')}
               </Button>
             </View>
           </View>
