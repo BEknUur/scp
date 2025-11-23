@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 import { storage } from '@/utils/storage';
 
-const DEFAULT_REMOTE_API_URL = 'https://5354390969eb.ngrok-free.app';
+const DEFAULT_REMOTE_API_URL = 'https://e4e4d956a1a9.ngrok-free.app';
 
 const getApiUrl = () => {
   const envApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();

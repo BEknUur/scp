@@ -150,6 +150,12 @@ export default function ChatScreen() {
         options={{
           title: link?.consumer_id ? `Consumer #${link.consumer_id}` : 'Chat',
           headerBackTitle: 'Back',
+          headerLeft: () => (
+            <TouchableOpacity style={styles.headerBackButton} onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color={colors.foreground.primary} />
+              <Text style={styles.headerBackText}>Back</Text>
+            </TouchableOpacity>
+          ),
         }}
       />
       <KeyboardAvoidingView
@@ -326,5 +332,15 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.foreground.tertiary,
     textAlign: 'center',
+  },
+  headerBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    gap: spacing.xs,
+  },
+  headerBackText: {
+    ...typography.button,
+    color: colors.foreground.primary,
   },
 });
