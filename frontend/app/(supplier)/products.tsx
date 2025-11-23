@@ -11,6 +11,7 @@ import {
   TextInput,
   Modal,
   Switch,
+  Platform,
 } from 'react-native';
 import { productsApi } from '@/api';
 import { ProductOut, ProductCreate, ProductUpdate } from '@/types';
@@ -46,6 +47,27 @@ export default function ProductsScreen() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
+  };
+
+  const confirmDelete = async () => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      return window.confirm(`${t('products.deleteProduct')}\n\n${t('products.deleteConfirm')}`);
+    }
+
+    return new Promise<boolean>((resolve) => {
+      Alert.alert(
+        t('products.deleteProduct'),
+        t('products.deleteConfirm'),
+        [
+          { text: t('app.cancel'), style: 'cancel', onPress: () => resolve(false) },
+          {
+            text: t('app.delete'),
+            style: 'destructive',
+            onPress: () => resolve(true),
+          },
+        ]
+      );
+    });
   };
 
   const openCreateModal = () => {
@@ -106,23 +128,17 @@ export default function ProductsScreen() {
     }
   };
 
-  const handleDeleteProduct = (productId: number) => {
-    Alert.alert(t('products.deleteProduct'), t('products.deleteConfirm'), [
-      { text: t('app.cancel'), style: 'cancel' },
-      {
-        text: t('app.delete'),
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await productsApi.delete(productId);
-            Alert.alert(t('app.success'), t('products.productDeleted'));
-            loadProducts();
-          } catch (error: any) {
-            Alert.alert(t('app.error'), t('products.deleteError'));
-          }
-        },
-      },
-    ]);
+  const handleDeleteProduct = async (productId: number) => {
+    const confirmed = await confirmDelete();
+    if (!confirmed) return;
+
+    try {
+      await productsApi.delete(productId);
+      Alert.alert(t('app.success'), t('products.productDeleted'));
+      loadProducts();
+    } catch (error: any) {
+      Alert.alert(t('app.error'), t('products.deleteError'));
+    }
   };
 
   const renderProductItem = ({ item }: { item: ProductOut }) => (
