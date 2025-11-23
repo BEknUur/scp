@@ -208,7 +208,16 @@
     "noCompanyFound": "No Company Found",
     "createProfileSubtext": "Create your company profile to get started with managing your supplier account",
     "companyNotFound": "Company Not Found",
-    "createProfileMessage": "You need to create your company profile first."
+    "createProfileMessage": "You need to create your company profile first.",
+    "createProfileTitle": "Create your supplier profile",
+    "createProfileCta": "Create Profile",
+    "namePlaceholder": "e.g. Fresh Farm Co",
+    "descriptionPlaceholder": "What do you sell? (optional)",
+    "nameRequired": "Please enter your company name",
+    "createSuccess": "Company profile created",
+    "createError": "Failed to create company profile",
+    "ownerOnly": "Only the supplier owner can create the company profile",
+    "loadError": "Failed to load company profile"
   },
   "products": {
     "subtitle": "Manage items in your catalog",

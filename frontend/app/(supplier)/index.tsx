@@ -11,16 +11,22 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { suppliersApi } from '@/api';
 import { SupplierOut } from '@/types';
-import { Card } from '@/components/ui';
-import { colors, typography, spacing, radius } from '@/theme';
+import { Card, Input, Button } from '@/components/ui';
+import { colors, typography, spacing } from '@/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@/hooks/useTranslation';
+import { Role } from '@/enums';
 
 export default function SupplierDashboardScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [supplier, setSupplier] = useState<SupplierOut | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isOwner = user?.role === Role.SUPPLIER_OWNER;
 
   useEffect(() => {
     loadSupplier();
@@ -31,15 +37,41 @@ export default function SupplierDashboardScreen() {
       const data = await suppliersApi.getMySupplier();
       setSupplier(data);
     } catch (error: any) {
-      if (error.response?.status === 404) {
-        Alert.alert(
-          t('dashboard.companyNotFound'),
-          t('dashboard.createProfileMessage'),
-          [{ text: t('app.confirm') }]
-        );
+      if (error.response?.status !== 404) {
+        Alert.alert(t('app.error'), t('dashboard.loadError'));
       }
+      setSupplier(null);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateSupplier = async () => {
+    if (!name.trim()) {
+      Alert.alert(t('app.error'), t('dashboard.nameRequired'));
+      return;
+    }
+
+    if (!isOwner) {
+      Alert.alert(t('app.error'), t('dashboard.ownerOnly'));
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        name: name.trim(),
+        description: description.trim() || undefined,
+      };
+      const created = await suppliersApi.create(payload);
+      setSupplier(created);
+      setName('');
+      setDescription('');
+      Alert.alert(t('app.success'), t('dashboard.createSuccess'));
+    } catch (error: any) {
+      Alert.alert(t('app.error'), error.response?.data?.detail || t('dashboard.createError'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -54,13 +86,15 @@ export default function SupplierDashboardScreen() {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.content}>
-        {/* Header with Avatar */}
-        <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Ionicons name="business" size={32} color={colors.background.primary} />
+        <View style={styles.hero}>
+          <View style={styles.heroBadge}>
+            <Ionicons name="business" size={26} color={colors.background.primary} />
           </View>
-          <Text style={styles.headerTitle}>{t('dashboard.title')}</Text>
-          <Text style={styles.headerSubtitle}>{user?.email}</Text>
+          <Text style={styles.heroTitle}>{t('dashboard.title')}</Text>
+          <Text style={styles.heroSubtitle}>{user?.email}</Text>
+          <Text style={styles.heroTagline}>
+            {t('dashboard.createProfileSubtext')}
+          </Text>
         </View>
 
         {/* Company Information Card */}
@@ -83,18 +117,57 @@ export default function SupplierDashboardScreen() {
             </View>
           </Card>
         ) : (
-          <View style={styles.emptyState}>
-            <Ionicons
-              name="business-outline"
-              size={64}
-              color={colors.foreground.tertiary}
-              style={styles.emptyIcon}
-            />
-            <Text style={styles.emptyText}>{t('dashboard.noCompanyFound')}</Text>
-            <Text style={styles.emptySubtext}>
-              {t('dashboard.createProfileSubtext')}
-            </Text>
-          </View>
+          <>
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="business-outline"
+                size={64}
+                color={colors.foreground.tertiary}
+                style={styles.emptyIcon}
+              />
+              <Text style={styles.emptyText}>{t('dashboard.noCompanyFound')}</Text>
+              <Text style={styles.emptySubtext}>
+                {t('dashboard.createProfileSubtext')}
+              </Text>
+            </View>
+
+            <Card style={styles.card}>
+              <Text style={styles.cardTitle}>{t('dashboard.createProfileTitle')}</Text>
+              <Text style={styles.cardHint}>{t('dashboard.createProfileSubtext')}</Text>
+              <View style={styles.form}>
+                <Input
+                  label={t('dashboard.companyName')}
+                  placeholder={t('dashboard.namePlaceholder')}
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                  containerStyle={styles.input}
+                />
+                <Input
+                  label={t('dashboard.description')}
+                  placeholder={t('dashboard.descriptionPlaceholder')}
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  containerStyle={[styles.input, styles.multilineContainer]}
+                />
+                {!isOwner && (
+                  <Text style={styles.helperText}>{t('dashboard.ownerOnly')}</Text>
+                )}
+                <Button
+                  onPress={handleCreateSupplier}
+                  loading={isSubmitting}
+                  disabled={!isOwner}
+                  fullWidth
+                  style={styles.primaryButton}
+                >
+                  {t('dashboard.createProfileCta')}
+                </Button>
+              </View>
+            </Card>
+          </>
         )}
       </View>
     </ScrollView>
@@ -113,53 +186,74 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    maxWidth: 600,
+    maxWidth: 720,
     width: '100%',
     alignSelf: 'center',
-    padding: spacing.lg,
+    padding: spacing['2xl'],
     paddingBottom: spacing['4xl'],
   },
-  header: {
+  hero: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
-    paddingTop: spacing.md,
+    marginBottom: spacing['2xl'],
+    paddingTop: spacing.lg,
+    gap: spacing.sm,
   },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  heroBadge: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: colors.foreground.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.md,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
-  headerTitle: {
+  heroTitle: {
     ...typography.h2,
-    marginBottom: spacing.xs,
+    marginTop: spacing.xs,
   },
-  headerSubtitle: {
+  heroSubtitle: {
     ...typography.body,
     color: colors.foreground.secondary,
   },
+  heroTagline: {
+    ...typography.body,
+    color: colors.foreground.tertiary,
+    textAlign: 'center',
+    maxWidth: 420,
+  },
   card: {
-    marginBottom: spacing.lg,
-    padding: spacing.lg,
+    marginBottom: spacing['2xl'],
+    padding: spacing.xl,
+    borderRadius: 16,
+    backgroundColor: colors.background.primary,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    ...Platform.select({
+      android: {
+        elevation: 5,
+      },
+    }),
   },
   cardTitle: {
     ...typography.h4,
+    marginBottom: spacing.sm,
+    fontWeight: '700',
+  },
+  cardHint: {
+    ...typography.body,
+    color: colors.foreground.secondary,
     marginBottom: spacing.lg,
-    fontWeight: '600',
+  },
+  input: {
+    marginBottom: spacing.md,
+  },
+  form: {
+    gap: spacing.md,
   },
   infoGrid: {
     gap: spacing.md,
@@ -183,18 +277,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing['4xl'],
+    backgroundColor: '#0f172a0a',
+    borderRadius: 16,
+    marginBottom: spacing.lg,
   },
   emptyIcon: {
     marginBottom: spacing.lg,
   },
   emptyText: {
     ...typography.h3,
-    color: colors.foreground.secondary,
+    color: colors.foreground.primary,
     marginBottom: spacing.sm,
   },
   emptySubtext: {
     ...typography.body,
-    color: colors.foreground.tertiary,
+    color: colors.foreground.secondary,
     textAlign: 'center',
+    maxWidth: 360,
+  },
+  helperText: {
+    ...typography.caption,
+    color: colors.semantic.warning,
+  },
+  multilineContainer: {
+    height: 120,
+  },
+  primaryButton: {
+    marginTop: spacing.sm,
   },
 });

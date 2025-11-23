@@ -208,7 +208,16 @@
     "noCompanyFound": "Компания не найдена",
     "createProfileSubtext": "Создайте профиль компании, чтобы начать управлять аккаунтом поставщика",
     "companyNotFound": "Компания не найдена",
-    "createProfileMessage": "Сначала необходимо создать профиль компании."
+    "createProfileMessage": "Сначала необходимо создать профиль компании.",
+    "createProfileTitle": "Создайте профиль поставщика",
+    "createProfileCta": "Создать профиль",
+    "namePlaceholder": "например, Fresh Farm Co",
+    "descriptionPlaceholder": "Чем занимаетесь? (необязательно)",
+    "nameRequired": "Введите название компании",
+    "createSuccess": "Профиль компании создан",
+    "createError": "Не удалось создать профиль компании",
+    "ownerOnly": "Только владелец поставщика может создать профиль",
+    "loadError": "Не удалось загрузить профиль компании"
   },
   "products": {
     "subtitle": "Управляйте товарами в каталоге",
